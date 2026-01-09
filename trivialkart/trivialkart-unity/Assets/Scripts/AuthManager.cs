@@ -125,20 +125,20 @@ public class AuthManager : MonoBehaviour
 #elif PGS_V2
         // --- V2 INITIALIZATION ---
         statusText.text = "Initializing Google Sign-In...";
-        GoogleSignIn.Configuration = new GoogleSignInConfiguration
-        {
-            WebClientId = "",
-            ForceTokenRefresh = true,
-            
-            UseGameSignIn = false,
-            RequestEmail = true,
-            RequestAuthCode = true,
-            
-            // AdditionalScopes = new List<string>
-            // {
-            //     "https://www.googleapis.com/auth/games_lite"
-            // }
-        };
+        // GoogleSignIn.Configuration = new GoogleSignInConfiguration
+        // {
+        //     WebClientId = " ",
+        //     ForceTokenRefresh = true,
+        //     
+        //     UseGameSignIn = false,
+        //     RequestEmail = true,
+        //     RequestAuthCode = true,
+        //     
+        //     // AdditionalScopes = new List<string>
+        //     // {
+        //     //     "https://www.googleapis.com/auth/games_lite"
+        //     // }
+        // };
 
         PlayGamesPlatform.DebugLogEnabled = true;
 #endif
@@ -167,7 +167,8 @@ public class AuthManager : MonoBehaviour
 #if PGS_V1
         PlayGamesPlatform.Instance.Authenticate(OnSilentSignInFinished, true);
 #elif PGS_V2
-        GoogleSignIn.DefaultInstance.SignInSilently().ContinueWith(OnGoogleSignInComplete);
+        // GoogleSignIn.DefaultInstance.SignInSilently().ContinueWith(OnGoogleSignInComplete);
+        StartSignIn();
 #endif
     }
     
@@ -180,9 +181,11 @@ public class AuthManager : MonoBehaviour
 
             if (authCodeToExchange != null && googleSignInException == null)
             {
-                // --- Success case ---
-                Debug.Log($"Google Sign-In successful for: {this.googleUser.Email}");
-                Debug.Log($"Retrieved Server Auth Code. Sending to backend...");
+                // --- [CHANGED] Handle null googleUser from CredMan ---
+                string logEmail = (this.googleUser != null) ? this.googleUser.Email : "CredMan User";
+                Debug.Log($"Google Sign-In successful for: {logEmail}");
+                
+                Debug.Log($"Retrieved Auth Token/Code. Sending to backend...");
                 statusText.text = "Connecting to game server...";
                 StartCoroutine(ExchangeAuthcodeAndLink(authCodeToExchange));
             }
@@ -525,38 +528,39 @@ public class AuthManager : MonoBehaviour
 #if PGS_V1
         PlayGamesPlatform.Instance.Authenticate(ProcessAuthenticationResult, false);
 #elif PGS_V2
-        Type signInType = typeof(GoogleSignIn);
-        var fields = signInType.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-
-        foreach (var field in fields)
-        {
-            if (field.FieldType == signInType)
-            {
-                // Found it! This is the singleton instance. Destroy it.
-                field.SetValue(null, null);
-                Debug.Log($"[Fix] Successfully reset GoogleSignIn instance field: {field.Name}");
-            }
-        }
-
-        // --- 2. DEFINE NEW CONFIGURATION ---
-        GoogleSignIn.Configuration = new GoogleSignInConfiguration
-        {
-            WebClientId = "",
-            ForceTokenRefresh = true,
-            UseGameSignIn = false,
-            RequestEmail = true,
-            RequestAuthCode = true,
-        
-            // Triggers the "This app wants access to Play Games" consent screen
-            AdditionalScopes = new List<string>
-            {
-                "https://www.googleapis.com/auth/games_lite"
-            }
-        };
-
-        // --- 3. SIGN IN ---
-        // This will now successfully create a NEW instance with the NEW config
-        GoogleSignIn.DefaultInstance.SignIn().ContinueWith(OnGoogleSignInComplete);
+        StartSignIn();
+        // Type signInType = typeof(GoogleSignIn);
+        // var fields = signInType.GetFields(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+        //
+        // foreach (var field in fields)
+        // {
+        //     if (field.FieldType == signInType)
+        //     {
+        //         // Found it! This is the singleton instance. Destroy it.
+        //         field.SetValue(null, null);
+        //         Debug.Log($"[Fix] Successfully reset GoogleSignIn instance field: {field.Name}");
+        //     }
+        // }
+        //
+        // // --- 2. DEFINE NEW CONFIGURATION ---
+        // GoogleSignIn.Configuration = new GoogleSignInConfiguration
+        // {
+        //     WebClientId = " ",
+        //     ForceTokenRefresh = true,
+        //     UseGameSignIn = false,
+        //     RequestEmail = true,
+        //     RequestAuthCode = true,
+        //
+        //     // Triggers the "This app wants access to Play Games" consent screen
+        //     // AdditionalScopes = new List<string>
+        //     // {
+        //     //     "https://www.googleapis.com/auth/games_lite"
+        //     // }
+        // };
+        //
+        // // --- 3. SIGN IN ---
+        // // This will now successfully create a NEW instance with the NEW config
+        // GoogleSignIn.DefaultInstance.SignIn().ContinueWith(OnGoogleSignInComplete);
 #endif
     }
 
@@ -699,5 +703,32 @@ public class AuthManager : MonoBehaviour
         startPanel.SetActive(true);
         loginButtonsPanel.SetActive(false);
     }
+    
+    public void StartSignIn()
+    {
+        string webClientId = " ";
+            
+        // Get the current Android Activity
+        AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+        AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+        
+        AndroidJavaClass bridge = new AndroidJavaClass("com.wickedcube.trivialkart.CredManBridge");
+        bridge.CallStatic("signIn", currentActivity, webClientId);
+    }
+    
+    public void OnSignInSuccess(string token)
+    {
+        Debug.Log("CredMan Success! Passing token to main thread.");
+        authCodeToExchange = token;
+        googleTaskComplete = true;
+    }
+    
+    public void OnSignInError(string error)
+    {
+        Debug.LogError("CredMan Error: " + error);
+        statusText.text = "Sign-in Error: " + error;
+        ShowStartPanel();
+    }
+    
 #endif // End of #if PGS_V1 || PGS_V2
 }

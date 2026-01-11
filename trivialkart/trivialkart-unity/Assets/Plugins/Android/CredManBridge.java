@@ -3,25 +3,21 @@ package com.wickedcube.trivialkart;
 import android.accounts.Account;
 import android.content.Context;
 import android.util.Log;
+import android.os.CancellationSignal;
 
-// Credential Manager Imports
 import androidx.credentials.CredentialManager;
 import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialException;
-import android.os.CancellationSignal;
+import androidx.credentials.exceptions.NoCredentialException;
 
-// Google ID Token Import
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
-// Authorization Client Imports
 import com.google.android.gms.auth.api.identity.AuthorizationClient;
 import com.google.android.gms.auth.api.identity.AuthorizationRequest;
-import com.google.android.gms.auth.api.identity.AuthorizationResult;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.common.api.ApiException;
 
 import com.unity3d.player.UnityPlayer;
 
@@ -32,89 +28,118 @@ import java.util.concurrent.Executors;
 
 public class CredManBridge {
 
-    public static void signIn(Context context, String webClientId) {
+    // --- MODE 1: SILENT SIGN-IN (Called on Awake) ---
+    // Tries to auto-select an authorized account. If it fails, it does NOT show UI.
+    public static void signInSilent(Context context, String webClientId) {
         CredentialManager credentialManager = CredentialManager.create(context);
-
-        // 1. Configure Request for CredMan (to get the Account/Email)
-        GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
-            .setServerClientId(webClientId)
-            .setAutoSelectEnabled(false)
-            .build();
-
-        GetCredentialRequest request = new GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
-            .build();
-
         CancellationSignal cancellationSignal = new CancellationSignal();
         Executor executor = Executors.newSingleThreadExecutor();
 
-        Log.d("CredMan", "Starting CredMan Sign-In...");
+        Log.d("CredMan", "Attempting Silent Sign-In...");
+
+        GetGoogleIdOption silentOption = new GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(true) // Strict: Only authorized accounts
+            .setServerClientId(webClientId)
+            .setAutoSelectEnabled(true)          // Auto-select if possible
+            .build();
+
+        GetCredentialRequest silentRequest = new GetCredentialRequest.Builder()
+            .addCredentialOption(silentOption)
+            .build();
 
         credentialManager.getCredentialAsync(
             context,
-            request,
+            silentRequest,
             cancellationSignal,
             executor,
             new androidx.credentials.CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
                 @Override
                 public void onResult(GetCredentialResponse result) {
-                    try {
-                        Log.d("CredMan", "CredMan Success. Parsing result...");
-
-                        // 2. Extract Email from CredMan result
-                        GoogleIdTokenCredential credential = GoogleIdTokenCredential.createFrom(result.getCredential().getData());
-                        String email = credential.getId();
-                        
-                        Log.d("CredMan", "Got Email: " + email);
-
-                        // 3. Construct the Account Object
-                        Account account = new Account(email, "com.google");
-                        
-                        // 4. Build Authorization Request
-                        // Use requestOfflineAccess to get the Server Auth Code
-                        List<Scope> requestedScopes = Collections.singletonList(new Scope("https://www.googleapis.com/auth/games_lite"));
-                        
-                        AuthorizationRequest authRequest = new AuthorizationRequest.Builder()
-                            .setRequestedScopes(requestedScopes)
-                            .setAccount(account)
-                            .requestOfflineAccess(webClientId) // CORRECTED: Replaces setServerClientId
-                            .build();
-
-                        // 5. Call the Authorization API
-                        AuthorizationClient authClient = Identity.getAuthorizationClient(context);
-                        
-                        authClient.authorize(authRequest)
-                            .addOnSuccessListener(authorizationResult -> {
-                                // CORRECTED: Check for null instead of hasServerAuthCode()
-                                if (authorizationResult.getServerAuthCode() != null) {
-                                    String authCode = authorizationResult.getServerAuthCode();
-                                    Log.d("CredMan", "Authorization Success! Auth Code retrieved.");
-                                    
-                                    // Send code to Unity to trigger the Node.js backend call
-                                    UnityPlayer.UnitySendMessage("AuthManager", "OnSignInSuccess", authCode);
-                                } else {
-                                    Log.e("CredMan", "Authorization Success, but no Server Auth Code returned.");
-                                    UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "No Auth Code returned");
-                                }
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e("CredMan", "Authorization Failed", e);
-                                UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "Authorization Failed: " + e.getMessage());
-                            });
-
-                    } catch (Exception e) {
-                        Log.e("CredMan", "Error parsing CredMan result", e);
-                        UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "Parsing Error: " + e.getMessage());
-                    }
+                    Log.d("CredMan", "Silent Sign-In Successful!");
+                    handleSignInResult(context, result, webClientId);
                 }
 
                 @Override
                 public void onError(GetCredentialException e) {
-                    Log.e("CredMan", "CredMan UI Error/Cancellation", e);
-                    UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", e.getMessage());
+                    // Send a specific error code so Unity knows to just stay on the Start Screen
+                    Log.d("CredMan", "Silent sign-in failed. Keeping UI hidden.");
+                    UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "SilentFailed");
                 }
             }
         );
+    }
+
+    // --- MODE 2: INTERACTIVE SIGN-IN (Called on Button Click) ---
+    // Forces the Account Selection / "Add Account" sheet to appear.
+    public static void signInInteractive(Context context, String webClientId) {
+        CredentialManager credentialManager = CredentialManager.create(context);
+        CancellationSignal cancellationSignal = new CancellationSignal();
+        Executor executor = Executors.newSingleThreadExecutor();
+
+        Log.d("CredMan", "Starting Interactive Sign-In...");
+
+        GetGoogleIdOption interactiveOption = new GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false) // Show ALL accounts (and "Add Account")
+            .setServerClientId(webClientId)
+            .setAutoSelectEnabled(false)          // Force the UI to show
+            .build();
+
+        GetCredentialRequest interactiveRequest = new GetCredentialRequest.Builder()
+            .addCredentialOption(interactiveOption)
+            .build();
+
+        credentialManager.getCredentialAsync(
+            context,
+            interactiveRequest,
+            cancellationSignal,
+            executor,
+            new androidx.credentials.CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                @Override
+                public void onResult(GetCredentialResponse result) {
+                    Log.d("CredMan", "Interactive Sign-In Successful!");
+                    handleSignInResult(context, result, webClientId);
+                }
+
+                @Override
+                public void onError(GetCredentialException e) {
+                    Log.e("CredMan", "Interactive Sign-In Canceled or Failed", e);
+                    UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "Canceled");
+                }
+            }
+        );
+    }
+
+    // --- SHARED: Process Result & Authorize ---
+    private static void handleSignInResult(Context context, GetCredentialResponse result, String webClientId) {
+        try {
+            GoogleIdTokenCredential credential = GoogleIdTokenCredential.createFrom(result.getCredential().getData());
+            String email = credential.getId();
+            
+            Account account = new Account(email, "com.google");
+            List<Scope> requestedScopes = Collections.singletonList(new Scope("https://www.googleapis.com/auth/games_lite"));
+            
+            AuthorizationRequest authRequest = new AuthorizationRequest.Builder()
+                .setRequestedScopes(requestedScopes)
+                .setAccount(account)
+                .requestOfflineAccess(webClientId)
+                .build();
+
+            AuthorizationClient authClient = Identity.getAuthorizationClient(context);
+            
+            authClient.authorize(authRequest)
+                .addOnSuccessListener(authorizationResult -> {
+                    if (authorizationResult.getServerAuthCode() != null) {
+                        UnityPlayer.UnitySendMessage("AuthManager", "OnSignInSuccess", authorizationResult.getServerAuthCode());
+                    } else {
+                        UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "No Auth Code returned");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "Authorization Failed: " + e.getMessage());
+                });
+
+        } catch (Exception e) {
+            UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "Parsing Error: " + e.getMessage());
+        }
     }
 }

@@ -57,11 +57,15 @@ let nextInGameAccountId = 1001;
 // PGS v1 (v0.10.x) ENDPOINT
 // This endpoint receives an ID Token directly from the client.
 // ---
+// ---
+// PGS v1 (v0.10.x) ENDPOINT
+// UPDATED: Now uses OpenID (sub) to match the v2 implementation
+// ---
 app.post('/verify_and_link_google', async (req, res) => {
     const { idToken, playerID } = req.body;
 
-    if (!idToken || !playerID) {
-        return res.status(400).json({ error: "idToken and playerId are required" });
+    if (!idToken) {
+        return res.status(400).json({ error: "idToken is required" });
     }
 
     try {
@@ -73,34 +77,43 @@ app.post('/verify_and_link_google', async (req, res) => {
         const payload = ticket.getPayload();
         const email = payload.email;
 
-        console.log(`(PGS v1) Successfully verified idToken for: ${email}`);
-        console.warn(`(PGS v1) Using playerID from client: ${playerID}`);
+        // [CHANGE 1] Extract the OpenID (sub) from the token
+        const openId = payload.sub;
 
-        // 3. Find or create the in-game account using GAIA ID
-        let inGameAccountID
-        if (userDatabase.has(playerID)) {
-            // User already exists, retrieve their ID
-            inGameAccountID = userDatabase.get(playerID);
-            console.log(`(PGS v1) Existing user. In-Game ID: ${inGameAccountID}`);
+        console.log(`(PGS v1) Verified. Email: ${email}, OpenID: ${openId}`);
+
+        // [CHANGE 2] Create the database key using OpenID (Same as v2)
+        const dbKey = `google-${openId}`;
+
+        // 3. Find or create the in-game account using the OpenID Key
+        let inGameAccountID;
+
+        // [CHANGE 3] Look up using dbKey instead of playerID
+        if (userDatabase.has(dbKey)) {
+            // User already exists
+            inGameAccountID = userDatabase.get(dbKey);
+            console.log(`(PGS v1) Existing user (OpenID). In-Game ID: ${inGameAccountID}`);
         } else {
-            // New user, create a new in-game ID and store it
+            // New user
             inGameAccountID = `ingame-${nextInGameAccountId++}`;
 
-            userDatabase.set(playerID, inGameAccountID);
+            // [CHANGE 4] Save using dbKey instead of playerID
+            userDatabase.set(dbKey, inGameAccountID);
             inGameDatabase.set(inGameAccountID, 0);
 
-            console.log(`(PGS v1) New user. Created In-Game ID: ${inGameAccountID}`);
+            console.log(`(PGS v1) New user (OpenID). Created In-Game ID: ${inGameAccountID}`);
         }
 
+        // [CHANGE 5] Update the custom token payload to use the consistent ID
         const tokenPayload = {
-            playerID: playerID,
+            playerID: dbKey, // Now consistent with v2
             inGameAccountID: inGameAccountID
         };
         const customJwtToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
 
         // 4. Send the success response back to the client
         res.status(200).json({
-            playerID: playerID,
+            playerID: dbKey, // Return the consistent ID
             email: email,
             inGameAccountID: inGameAccountID,
             inGameCount : inGameDatabase.get(inGameAccountID),

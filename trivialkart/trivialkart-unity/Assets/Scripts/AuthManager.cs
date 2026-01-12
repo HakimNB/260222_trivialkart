@@ -309,7 +309,7 @@ public class AuthManager : MonoBehaviour
 
     public void StartSignIn(bool interactive)
     {
-        string webClientId = "1044312393953-eq0gni71js6od3c4cqjjc2i167men5qq.apps.googleusercontent.com";
+        string webClientId = "";
         AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
         AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
         AndroidJavaClass bridge = new AndroidJavaClass("com.wickedcube.trivialkart.CredManBridge");

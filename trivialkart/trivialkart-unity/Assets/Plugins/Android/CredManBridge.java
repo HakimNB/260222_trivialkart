@@ -16,6 +16,8 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
 import com.google.android.gms.auth.api.identity.AuthorizationClient;
 import com.google.android.gms.auth.api.identity.AuthorizationRequest;
+import com.google.android.gms.auth.api.identity.AuthorizationResult;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.common.api.Scope;
 
@@ -109,13 +111,14 @@ public class CredManBridge {
         );
     }
 
-    // --- SHARED: Process Result & Authorize ---
+    
     private static void handleSignInResult(Context context, GetCredentialResponse result, String webClientId) {
         try {
             GoogleIdTokenCredential credential = GoogleIdTokenCredential.createFrom(result.getCredential().getData());
             String email = credential.getId();
             
             Account account = new Account(email, "com.google");
+            // Requesting GAMES_LITE scope to check for pre-existing V1 grants
             List<Scope> requestedScopes = Collections.singletonList(new Scope("https://www.googleapis.com/auth/games_lite"));
             
             AuthorizationRequest authRequest = new AuthorizationRequest.Builder()
@@ -123,21 +126,41 @@ public class CredManBridge {
                 .setAccount(account)
                 .requestOfflineAccess(webClientId)
                 .build();
-
+    
             AuthorizationClient authClient = Identity.getAuthorizationClient(context);
             
             authClient.authorize(authRequest)
                 .addOnSuccessListener(authorizationResult -> {
                     if (authorizationResult.getServerAuthCode() != null) {
+                        // CASE 1: RETURNING USER (Success)
+                        // The user has already granted GAMES_LITE in the past. 
+                        // We got the code directly without showing UI.
+                        Log.i("CredMan", "PGS v1: Existing grant found. Returning user detected. Auth Code retrieved.");
                         UnityPlayer.UnitySendMessage("AuthManager", "OnSignInSuccess", authorizationResult.getServerAuthCode());
-                    } else {
+                    } 
+                    else if (authorizationResult.hasResolution()) {
+                        // CASE 2: NEW USER (PendingIntent)
+                        // The user has NOT granted GAMES_LITE before. The API returned a PendingIntent 
+                        // (authorizationResult.getPendingIntent()) to show the consent screen.
+                        // As per your flow, we DISCARD this intent and do not show UI.
+                        Log.i("CredMan", "PGS v1: No existing grant (PendingIntent returned). This is a NEW user or they revoked access.");
+                        Log.i("CredMan", "PGS v1: Discarding PendingIntent. Proceeding as New User.");
+                        
+                        // Notify Unity that this is a "New User" so it can trigger V2 logic instead of failing
+                        UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "NewUser_NoGrant");
+                    } 
+                    else {
+                        // Edge Case: No code and no resolution?
+                        Log.e("CredMan", "PGS v1: Authorization success but no Auth Code or Resolution returned.");
                         UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "No Auth Code returned");
                     }
                 })
                 .addOnFailureListener(e -> {
+                    // CASE 3: GENERIC FAILURE
+                    Log.e("CredMan", "PGS v1: Authorization failed completely.", e);
                     UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "Authorization Failed: " + e.getMessage());
                 });
-
+    
         } catch (Exception e) {
             UnityPlayer.UnitySendMessage("AuthManager", "OnSignInError", "Parsing Error: " + e.getMessage());
         }

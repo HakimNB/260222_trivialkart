@@ -1,5 +1,5 @@
 #if PGS_V2
-using Facebook.Unity;
+// using Facebook.Unity;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi; 
 using System.Collections.Generic;
@@ -82,14 +82,14 @@ public class AuthManager_V2 : MonoBehaviour
         
         PlayGamesPlatform.DebugLogEnabled = true;
         
-        if (!FB.IsInitialized)
-        {
-            FB.Init(OnInitComplete, OnHideUnity);
-        }
-        else
-        {
-            FB.ActivateApp();
-        }
+        // if (!FB.IsInitialized)
+        // {
+        //     FB.Init(OnInitComplete, OnHideUnity);
+        // }
+        // else
+        // {
+        //     FB.ActivateApp();
+        // }
         
         getStartedButton.onClick.AddListener(GetStartedClicked);
         iAlreadyHaveButton.onClick.AddListener(IAlreadyHaveButtonClicked);
@@ -150,16 +150,16 @@ public class AuthManager_V2 : MonoBehaviour
 
     private void OnInitComplete()
     {
-        if (FB.IsInitialized)
-        {
-            FB.ActivateApp();
-            Debug.Log("Facebook SDK Initialized.");
-        }
-        else
-        {
-            Debug.LogError("Failed to Initialize the Facebook SDK.");
-            statusText.text = "Facebook SDK failed to init.";
-        }
+        // if (FB.IsInitialized)
+        // {
+        //     FB.ActivateApp();
+        //     Debug.Log("Facebook SDK Initialized.");
+        // }
+        // else
+        // {
+        //     Debug.LogError("Failed to Initialize the Facebook SDK.");
+        //     statusText.text = "Facebook SDK failed to init.";
+        // }
     }
 
     private void OnHideUnity(bool isGameShown)
@@ -322,54 +322,54 @@ public class AuthManager_V2 : MonoBehaviour
     
     private void OnSignInWithFacebookClicked()
     {
-        if (!FB.IsInitialized)
-        {
-            statusText.text = "Facebook SDK not ready. Retrying init...";
-            Debug.Log("FB SDK not ready. Calling Init...");
-            FB.Init(OnInitComplete, OnHideUnity);
-            return;
-        }
-
-        statusText.text = "Logging in with Facebook...";
-        loginButtonsPanel.SetActive(false);
-        
-        var perms = new List<string>() { "public_profile", "email" };
-        FB.LogInWithReadPermissions(perms, OnFacebookLoginComplete);
+        // if (!FB.IsInitialized)
+        // {
+        //     statusText.text = "Facebook SDK not ready. Retrying init...";
+        //     Debug.Log("FB SDK not ready. Calling Init...");
+        //     FB.Init(OnInitComplete, OnHideUnity);
+        //     return;
+        // }
+        //
+        // statusText.text = "Logging in with Facebook...";
+        // loginButtonsPanel.SetActive(false);
+        //
+        // var perms = new List<string>() { "public_profile", "email" };
+        // FB.LogInWithReadPermissions(perms, OnFacebookLoginComplete);
     }
     
-    private void OnFacebookLoginComplete(ILoginResult result)
-    {
-        if (result.Error != null)
-        {
-            Debug.LogError($"Facebook Login Error: {result.Error}");
-            statusText.text = "Facebook login failed.";
-            ShowStartPanel();
-            return;
-        }
-
-        if (result.Cancelled)
-        {
-            Debug.Log("Facebook Login Cancelled.");
-            statusText.text = "Facebook login cancelled.";
-            ShowStartPanel();
-            return;
-        }
-        
-        if (FB.IsLoggedIn)
-        {
-            var aToken = AccessToken.CurrentAccessToken;
-            Debug.Log($"Facebook Access Token: {aToken.TokenString}");
-            
-            statusText.text = "Connecting to game server...";
-            StartCoroutine(VerifyAndLinkFacebookAccount(aToken.TokenString));
-        }
-        else
-        {
-            Debug.LogWarning("Facebook login reported success, but FB.IsLoggedIn is false.");
-            statusText.text = "Facebook login failed.";
-            ShowStartPanel();
-        }
-    }
+    // private void OnFacebookLoginComplete(ILoginResult result)
+    // {
+    //     if (result.Error != null)
+    //     {
+    //         Debug.LogError($"Facebook Login Error: {result.Error}");
+    //         statusText.text = "Facebook login failed.";
+    //         ShowStartPanel();
+    //         return;
+    //     }
+    //
+    //     if (result.Cancelled)
+    //     {
+    //         Debug.Log("Facebook Login Cancelled.");
+    //         statusText.text = "Facebook login cancelled.";
+    //         ShowStartPanel();
+    //         return;
+    //     }
+    //     
+    //     if (FB.IsLoggedIn)
+    //     {
+    //         var aToken = AccessToken.CurrentAccessToken;
+    //         Debug.Log($"Facebook Access Token: {aToken.TokenString}");
+    //         
+    //         statusText.text = "Connecting to game server...";
+    //         StartCoroutine(VerifyAndLinkFacebookAccount(aToken.TokenString));
+    //     }
+    //     else
+    //     {
+    //         Debug.LogWarning("Facebook login reported success, but FB.IsLoggedIn is false.");
+    //         statusText.text = "Facebook login failed.";
+    //         ShowStartPanel();
+    //     }
+    // }
     
     private IEnumerator VerifyAndLinkFacebookAccount(string accessToken)
     {
@@ -415,10 +415,10 @@ public class AuthManager_V2 : MonoBehaviour
     private void OnSignOutClicked()
     {
         statusText.text = "Signing out...";
-        if (FB.IsLoggedIn)
-        {
-            FB.LogOut();
-        }
+        // if (FB.IsLoggedIn)
+        // {
+        //     FB.LogOut();
+        // }
         
         // Manually clear the local JWT token to end the server session
         customJwtToken = null;

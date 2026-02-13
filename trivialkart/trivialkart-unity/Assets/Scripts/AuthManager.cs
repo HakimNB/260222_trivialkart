@@ -8,7 +8,7 @@ using System.Text;
 using TMPro;
 
 #if PGS_V1 || PGS_V2
-using Facebook.Unity;
+// using Facebook.Unity;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
 #endif
@@ -42,6 +42,7 @@ public class AuthManager : MonoBehaviour
 #endif
 
     public string serverUrl;
+    public string webClientId;
 
     // --- ENDPOINTS ---
 #if PGS_V1
@@ -52,6 +53,7 @@ public class AuthManager : MonoBehaviour
     private string exchange_authcode_and_link;
     private string verify_and_link_facebook;
     private string post_count;
+    private string connection_check_url;
 #endif
 
     // --- REQUEST/RESPONSE OBJECTS ---
@@ -88,6 +90,7 @@ public class AuthManager : MonoBehaviour
         exchange_authcode_and_link = serverUrl + "/exchange_authcode_and_link";
         verify_and_link_facebook = serverUrl + "/verify_and_link_facebook";
         post_count = serverUrl + "/post_count";
+        connection_check_url = serverUrl + "/connection_check";
 #endif
         
         // --- 2. UI SETUP ---
@@ -126,8 +129,8 @@ public class AuthManager : MonoBehaviour
 #endif
 
         // Facebook Init (Common)
-        if (!FB.IsInitialized) FB.Init(OnInitComplete, OnHideUnity);
-        else FB.ActivateApp();
+        // if (!FB.IsInitialized) FB.Init(OnInitComplete, OnHideUnity);
+        // else FB.ActivateApp();
 
         // --- 4. BUTTON LISTENERS ---
         getStartedButton.onClick.AddListener(GetStartedClicked);
@@ -147,22 +150,68 @@ public class AuthManager : MonoBehaviour
         PlayGamesPlatform.Instance.Authenticate(OnSilentSignInFinished, true);
 #elif PGS_V2
         // V2 Session Check / Silent CredMan
-        if (TryLoadSession())
+        // if (TryLoadSession())
+        // {
+        //     Debug.Log("Valid session found. Skipping CredMan.");
+        //     ShowGamePanel();
+        //     SignInToPlayGamesServices(); // Achievements only
+        // }
+        // else if (PlayerPrefs.GetInt("UserSignedOut", 0) == 0)
+        // {
+        //     Debug.Log("Attempting CredMan Silent Sign-In...");
+        //     StartSignIn(false); // Silent Mode
+        // }
+        // else
+        // {
+        //     ShowStartPanel();
+        // }
+        // StartCoroutine(PostScore());
+        StartCoroutine(VerifyServerConnectionRoutine());
+#endif
+    }
+
+    private IEnumerator VerifyServerConnectionRoutine()
+    {
+        Debug.Log($"<color=yellow>[AuthManager]</color> Testing connection to: {serverUrl}");
+        
+        // We send our local webClientId so the server can warn us if there's a mismatch
+        string jsonPayload = $"{{\"webClientId\":\"{webClientId}\"}}";
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonPayload);
+
+        UnityWebRequest request = new UnityWebRequest(connection_check_url, "POST");
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        yield return request.SendWebRequest();
+
+        if (request.result != UnityWebRequest.Result.Success)
         {
-            Debug.Log("Valid session found. Skipping CredMan.");
-            ShowGamePanel();
-            SignInToPlayGamesServices(); // Achievements only
-        }
-        else if (PlayerPrefs.GetInt("UserSignedOut", 0) == 0)
-        {
-            Debug.Log("Attempting CredMan Silent Sign-In...");
-            StartSignIn(false); // Silent Mode
+            Debug.LogError($"<color=red>[AuthManager]</color> Connection Failed: {request.error}");
+            statusText.text = "Server Offline";
         }
         else
         {
-            ShowStartPanel();
+            // Parse a simple response from the server
+            var response = JsonUtility.FromJson<ConnectionResponse>(request.downloadHandler.text);
+            
+            Debug.Log($"<color=cyan>[AuthManager]</color> Connected to Server: <b>{response.serverName}</b>");
+            Debug.Log($"<color=cyan>[AuthManager]</color> Server Status: {response.status}");
+            
+            if (response.webClientIdMatch) {
+                statusText.text = $"Connected to {response.serverName}";
+            } else {
+                Debug.LogWarning("<color=orange>[AuthManager]</color> Warning: webClientId mismatch between Client and Server!");
+                statusText.text = "Config Mismatch Detected";
+            }
         }
-#endif
+    }
+
+    [System.Serializable]
+    private class ConnectionResponse {
+        public string serverName;
+        public string status;
+        public bool webClientIdMatch;
     }
     
     // --- MAIN UPDATE LOOP ---
@@ -309,7 +358,6 @@ public class AuthManager : MonoBehaviour
 
     public void StartSignIn(bool interactive)
     {
-        string webClientId = "";
         AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
         AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
         AndroidJavaClass bridge = new AndroidJavaClass("com.wickedcube.trivialkart.CredManBridge");
@@ -392,7 +440,7 @@ public class AuthManager : MonoBehaviour
 #elif PGS_V2
         ClearSession();
 #endif
-        if (FB.IsLoggedIn) FB.LogOut();
+        // if (FB.IsLoggedIn) FB.LogOut();
         customJwtToken = null;
         ShowStartPanel();
     }
@@ -445,15 +493,15 @@ public class AuthManager : MonoBehaviour
     // --- FACEBOOK (COMMON) ---
     private void OnSignInWithFacebookClicked()
     {
-        if (!FB.IsInitialized) { FB.Init(OnInitComplete, OnHideUnity); return; }
-        loginButtonsPanel.SetActive(false);
-        FB.LogInWithReadPermissions(new List<string>() { "public_profile", "email" }, OnFacebookLoginComplete);
+        // if (!FB.IsInitialized) { FB.Init(OnInitComplete, OnHideUnity); return; }
+        // loginButtonsPanel.SetActive(false);
+        // FB.LogInWithReadPermissions(new List<string>() { "public_profile", "email" }, OnFacebookLoginComplete);
     }
-    private void OnFacebookLoginComplete(ILoginResult result) 
-    {
-        if (FB.IsLoggedIn) StartCoroutine(VerifyAndLinkFacebookAccount(AccessToken.CurrentAccessToken.TokenString));
-        else ShowStartPanel();
-    }
+    // private void OnFacebookLoginComplete(ILoginResult result) 
+    // {
+    //     if (FB.IsLoggedIn) StartCoroutine(VerifyAndLinkFacebookAccount(AccessToken.CurrentAccessToken.TokenString));
+    //     else ShowStartPanel();
+    // }
     private IEnumerator VerifyAndLinkFacebookAccount(string accessToken)
     {
         FacebookAuthRequest requestData = new FacebookAuthRequest { accessToken = accessToken };
@@ -483,7 +531,8 @@ public class AuthManager : MonoBehaviour
     }
 
     // --- UTILS ---
-    private void OnInitComplete() { if (FB.IsInitialized) FB.ActivateApp(); }
+    private void OnInitComplete() { //if (FB.IsInitialized) FB.ActivateApp();
+    }
     private void OnHideUnity(bool isGameShown) { Time.timeScale = isGameShown ? 1 : 0; }
     private void IAlreadyHaveButtonClicked() { startPanel.SetActive(false); loginButtonsPanel.SetActive(true); }
     private void ShowGamePanel() { gamePanel.SetActive(true); startPanel.SetActive(false); loginButtonsPanel.SetActive(false); }

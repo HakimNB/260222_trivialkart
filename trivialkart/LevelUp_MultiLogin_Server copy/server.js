@@ -11,7 +11,7 @@ const FB_APP_SECRET = process.env.FB_APP_SECRET;
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const PORT = 3000;
+const PORT = 3001;
 
 if (!WEB_CLIENT_ID || !WEB_CLIENT_SECRET || !FB_APP_ID || !FB_APP_SECRET || !JWT_SECRET) {
     console.error("FATAL ERROR: Google or Facebook .env or JWT_SECRET variables are not set.");
@@ -56,7 +56,7 @@ const verifyToken = (req, res, next) => {
 
 let nextInGameAccountId = 1001;
 
-const SERVER_NAME = "Prod_Server";
+const SERVER_NAME = "Staging_Server";
 
 app.post('/connection_check', (req, res) => {
     const clientProvidedId = req.body.webClientId;
@@ -72,7 +72,6 @@ app.post('/connection_check', (req, res) => {
         webClientIdMatch: isMatch
     });
 });
-
 
 app.post('/verify_and_link_google', async (req, res) => {
     const { idToken, playerID } = req.body;
@@ -321,7 +320,7 @@ async function getPlayerInfo(accessToken) {
     }
 }
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
     console.log(`Game server listening on http://localhost:${PORT}`);
     console.log('Waiting for a client to connect...');
 });

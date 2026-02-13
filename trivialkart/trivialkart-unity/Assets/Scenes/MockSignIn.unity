@@ -1550,7 +1550,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AuthManager
   serverUrl: http://192.168.0.103:3001
-  webClientId: 1044312393953-29plng21ji67pv7simh3mfe0pqj7v3ul.apps.googleusercontent.com
+  webClientId: 
 --- !u!1 &1162833870
 GameObject:
   m_ObjectHideFlags: 0

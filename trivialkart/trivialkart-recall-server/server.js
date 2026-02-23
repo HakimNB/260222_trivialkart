@@ -4,7 +4,9 @@ const fs = require('fs');
 const { JWT } = require('google-auth-library');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid'); // Used for generating unique tokens
-require('dotenv').config();
+const envFile = process.env.NODE_ENV === 'production' ? 'env_prod.env' : 'env_staging.env';
+require('dotenv').config({ path: envFile });
+console.log(`Loaded environment from ${envFile}`);
 
 // --- Simulated Database ---
 // In a real application, this would be a real database like PostgreSQL, MongoDB, etc.

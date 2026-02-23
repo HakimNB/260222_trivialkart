@@ -2,7 +2,9 @@ const express = require('express');
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 
-require('dotenv').config();
+const envFile = process.env.NODE_ENV === 'production' ? 'env_prod.env' : 'env_staging.env';
+require('dotenv').config({ path: envFile });
+console.log(`Loaded environment from ${envFile}`);
 
 const WEB_CLIENT_ID = process.env.WEB_CLIENT_ID;
 const WEB_CLIENT_SECRET = process.env.WEB_CLIENT_SECRET;

@@ -40,3 +40,8 @@ unity/power_efficiency_demo/Temp
 unity/power_efficiency_demo/UserSettings
 unity/power_efficiency_demo/*.csproj
 unity/power_efficiency_demo/*.sln
+
+# Environment files
+*.env
+*.keystore
+service-account.json

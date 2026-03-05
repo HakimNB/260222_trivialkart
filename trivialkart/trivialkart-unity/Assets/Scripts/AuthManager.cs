@@ -85,6 +85,7 @@ public class AuthManager : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log("AuthManager.Awake ");
         // --- 1. ENDPOINT SETUP ---
 // #if PGS_V2
         exchange_authcode_and_link = serverUrl + "/exchange_authcode_and_link";
@@ -170,8 +171,29 @@ public class AuthManager : MonoBehaviour
 // #endif
     }
 
+    private void SilentCredMan() {
+        // V2 Session Check / Silent CredMan
+        if (TryLoadSession())
+        {
+            Debug.Log("Valid session found. Skipping CredMan.");
+            ShowGamePanel();
+            SignInToPlayGamesServices(); // Achievements only
+        }
+        else if (PlayerPrefs.GetInt("UserSignedOut", 0) == 0)
+        {
+            Debug.Log("Attempting CredMan Silent Sign-In...");
+            StartSignIn(false); // Silent Mode
+        }
+        else
+        {
+            ShowStartPanel();
+        }
+        //StartCoroutine(PostScore());
+    }
+
     private IEnumerator VerifyServerConnectionRoutine()
     {
+        Debug.Log("AuthManager.VerifyServerConnectionRoutine ");
         Debug.Log($"<color=yellow>[AuthManager]</color> Testing connection to: {serverUrl}");
         
         // We send our local webClientId so the server can warn us if there's a mismatch
@@ -187,6 +209,7 @@ public class AuthManager : MonoBehaviour
 
         if (request.result != UnityWebRequest.Result.Success)
         {
+            Debug.Log("AuthManager.VerifyServerConnectionRoutine Connection Failed: " + request.error);
             Debug.LogError($"<color=red>[AuthManager]</color> Connection Failed: {request.error}");
             statusText.text = "Server Offline";
         }
@@ -199,7 +222,9 @@ public class AuthManager : MonoBehaviour
             Debug.Log($"<color=cyan>[AuthManager]</color> Server Status: {response.status}");
             
             if (response.webClientIdMatch) {
-                statusText.text = $"Connected to {response.serverName}";
+                statusText.text = $"Connected to {response.serverName} status: {response.status}";
+                // SilentCredMan(); 
+                ShowGamePanel();
             } else {
                 Debug.LogWarning("<color=orange>[AuthManager]</color> Warning: webClientId mismatch between Client and Server!");
                 statusText.text = "Config Mismatch Detected";
@@ -217,10 +242,12 @@ public class AuthManager : MonoBehaviour
     // --- MAIN UPDATE LOOP ---
     private void Update()
     {
+        // Debug.Log("AuthManager.Update ");
 // #if PGS_V2
         // V2 Main Thread Dispatcher
         if (googleTaskComplete)
         {
+            Debug.Log("AuthManager.Update googleTaskComplete");
             googleTaskComplete = false;
             if (!string.IsNullOrEmpty(credManError))
             {
@@ -246,6 +273,7 @@ public class AuthManager : MonoBehaviour
 // #if PGS_V1
 //     private void OnSilentSignInFinished(bool success)
 //     {
+//         Debug.Log("AuthManager.OnSilentSignInFinished success:" + success);
 //         if (success)
 //         {
 //             Debug.Log("PGS Silent sign-in successful. Verifying...");
@@ -262,6 +290,7 @@ public class AuthManager : MonoBehaviour
     
 //     private void ProcessAuthenticationResult(bool success)
 //     {
+//         Debug.Log("AuthManager.ProcessAuthenticationResult success:" + success);
 //         if (success)
 //         {
 //             statusText.text = "Success! Getting ID Token...";
@@ -289,6 +318,7 @@ public class AuthManager : MonoBehaviour
     
 //     private IEnumerator VerifyAndLinkGoogleAccount(string idToken, string playerID)
 //     {
+//         Debug.Log("AuthManager.VerifyAndLinkGoogleAccount idToken:" + idToken + " playerID:" + playerID);
 //         GoogleAuthRequest requestData = new GoogleAuthRequest { idToken = idToken, playerID = playerID };
 //         byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
 
@@ -322,6 +352,7 @@ public class AuthManager : MonoBehaviour
 // #if PGS_V2
     private bool TryLoadSession()
     {
+        Debug.Log("AuthManager.TryLoadSession ");
         string token = PlayerPrefs.GetString("Cached_JWT", null);
         if (string.IsNullOrEmpty(token)) return false;
 
@@ -336,6 +367,7 @@ public class AuthManager : MonoBehaviour
 
     private void SaveSession(LinkResponse data)
     {
+        Debug.Log("AuthManager.SaveSession data:" + data);
         PlayerPrefs.SetString("Cached_JWT", data.jwtToken);
         PlayerPrefs.SetString("Cached_Email", data.email);
         PlayerPrefs.SetString("Cached_ID", data.inGameAccountID);
@@ -347,6 +379,7 @@ public class AuthManager : MonoBehaviour
 
     private void ClearSession()
     {
+        Debug.Log("AuthManager.ClearSession ");
         PlayerPrefs.DeleteKey("Cached_JWT");
         PlayerPrefs.DeleteKey("Cached_Email");
         PlayerPrefs.DeleteKey("Cached_ID");
@@ -358,6 +391,7 @@ public class AuthManager : MonoBehaviour
 
     public void StartSignIn(bool interactive)
     {
+        Debug.Log("AuthManager.StartSignIn interactive:" + interactive);
         AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
         AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
         AndroidJavaClass bridge = new AndroidJavaClass("com.wickedcube.trivialkart.CredManBridge");
@@ -366,15 +400,17 @@ public class AuthManager : MonoBehaviour
         bridge.CallStatic(methodName, currentActivity, webClientId);
     }
     
-    public void OnSignInSuccess(string token) { authCodeToExchange = token; googleTaskComplete = true; }
+    public void OnSignInSuccess(string token) { Debug.Log("AuthManager.OnSignInSuccess token:" + token); authCodeToExchange = token; googleTaskComplete = true; }
     public void OnSignInError(string error) 
     { 
-        if (error == "SilentFailed") { Debug.Log("Silent failed. Idle."); return; }
+        Debug.Log("AuthManager.OnSignInError error:" + error);
+        if (error == "SilentFailed") { Debug.Log("AuthManager.Silent failed. Idle."); return; }
         credManError = error; googleTaskComplete = true; 
     }
 
     private IEnumerator ExchangeAuthcodeAndLink(string serverAuthCode)
     {
+        Debug.Log("AuthManager.ExchangeAuthcodeAndLink serverAuthCode:" + serverAuthCode);
         GoogleAuthRequest requestData = new GoogleAuthRequest { authCode = serverAuthCode };
         byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
 
@@ -404,6 +440,7 @@ public class AuthManager : MonoBehaviour
     
     private void SignInToPlayGamesServices()
     {
+        Debug.Log("AuthManager.SignInToPlayGamesServices ");
         PlayGamesPlatform.Instance.Authenticate((SignInStatus status) => { Debug.Log("PGS Auth: " + status); });
     }
 // #endif
@@ -413,6 +450,7 @@ public class AuthManager : MonoBehaviour
     // ========================================================================
     private void GetStartedClicked()
     {
+        Debug.Log("AuthManager.GetStartedClicked ");
         statusText.text = "Signing in...";
 // #if PGS_V1
 //         PlayGamesPlatform.Instance.Authenticate(ProcessAuthenticationResult, false);
@@ -423,6 +461,7 @@ public class AuthManager : MonoBehaviour
     
     private void OnSignInWithGoogleClicked()
     {
+        Debug.Log("AuthManager.OnSignInWithGoogleClicked ");
         statusText.text = "Signing in with Google...";
         loginButtonsPanel.SetActive(false);
 // #if PGS_V1
@@ -434,6 +473,7 @@ public class AuthManager : MonoBehaviour
 
     private void OnSignOutClicked()
     {
+        Debug.Log("AuthManager.OnSignOutClicked ");
         statusText.text = "Signing out...";
 // #if PGS_V1
 //         if (PlayGamesPlatform.Instance.IsAuthenticated()) PlayGamesPlatform.Instance.SignOut();
@@ -447,6 +487,7 @@ public class AuthManager : MonoBehaviour
     
     private void OnIncButtonClicked()
     {
+        Debug.Log("AuthManager.OnIncButtonClicked ");
         int curr = 0;
         int.TryParse(incText.text, out curr);
         curr++;
@@ -457,6 +498,7 @@ public class AuthManager : MonoBehaviour
     // --- SERVER (COMMON) ---
     private IEnumerator PostScore()
     {
+        Debug.Log("AuthManager.PostScore ");
         if (string.IsNullOrEmpty(customJwtToken)) yield break;
         PostCountRequest requestData = new PostCountRequest { count = int.Parse(incText.text) };
         byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
@@ -493,6 +535,7 @@ public class AuthManager : MonoBehaviour
     // --- FACEBOOK (COMMON) ---
     private void OnSignInWithFacebookClicked()
     {
+        Debug.Log("AuthManager.OnSignInWithFacebookClicked ");
         // if (!FB.IsInitialized) { FB.Init(OnInitComplete, OnHideUnity); return; }
         // loginButtonsPanel.SetActive(false);
         // FB.LogInWithReadPermissions(new List<string>() { "public_profile", "email" }, OnFacebookLoginComplete);
@@ -504,6 +547,7 @@ public class AuthManager : MonoBehaviour
     // }
     private IEnumerator VerifyAndLinkFacebookAccount(string accessToken)
     {
+        Debug.Log("AuthManager.VerifyAndLinkFacebookAccount accessToken:" + accessToken);
         FacebookAuthRequest requestData = new FacebookAuthRequest { accessToken = accessToken };
         byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
         UnityWebRequest request = new UnityWebRequest(verify_and_link_facebook, "POST");
@@ -531,16 +575,19 @@ public class AuthManager : MonoBehaviour
     }
 
     // --- UTILS ---
-    private void OnInitComplete() { //if (FB.IsInitialized) FB.ActivateApp();
+    private void OnInitComplete() { Debug.Log("AuthManager.OnInitComplete "); //if (FB.IsInitialized) FB.ActivateApp();
     }
-    private void OnHideUnity(bool isGameShown) { Time.timeScale = isGameShown ? 1 : 0; }
-    private void IAlreadyHaveButtonClicked() { startPanel.SetActive(false); loginButtonsPanel.SetActive(true); }
-    private void ShowGamePanel() { gamePanel.SetActive(true); startPanel.SetActive(false); loginButtonsPanel.SetActive(false); }
-    private void ShowStartPanel() { gamePanel.SetActive(false); startPanel.SetActive(true); loginButtonsPanel.SetActive(false); }
-    private void OnShowAchievementsButtonClicked() { PlayGamesPlatform.Instance.ShowAchievementsUI(); }
+    private void OnHideUnity(bool isGameShown) { Debug.Log("AuthManager.OnHideUnity isGameShown:" + isGameShown); Time.timeScale = isGameShown ? 1 : 0; }
+    private void IAlreadyHaveButtonClicked() { Debug.Log("AuthManager.IAlreadyHaveButtonClicked "); startPanel.SetActive(false); loginButtonsPanel.SetActive(true); }
+    private void ShowGamePanel() { Debug.Log("AuthManager.ShowGamePanel "); gamePanel.SetActive(true); startPanel.SetActive(false); loginButtonsPanel.SetActive(false); }
+    private void ShowStartPanel() { Debug.Log("AuthManager.ShowStartPanel "); gamePanel.SetActive(false); startPanel.SetActive(true); loginButtonsPanel.SetActive(false); }
+    private void OnShowAchievementsButtonClicked() { Debug.Log("AuthManager.OnShowAchievementsButtonClicked "); PlayGamesPlatform.Instance.ShowAchievementsUI(); }
     private void OnAchievementUnlockButtonClicked() {
+        Debug.Log("AuthManager.OnAchievementUnlockButtonClicked isAuthenticated: " + PlayGamesPlatform.Instance.IsAuthenticated());
         if (PlayGamesPlatform.Instance.IsAuthenticated())
-            PlayGamesPlatform.Instance.ReportProgress(GPGSIds.achievement_tk_achievement_rand, 100f, (bool s) => {});
+            PlayGamesPlatform.Instance.ReportProgress(GPGSIds.achievement_tk_achievement_rand, 100f, (bool s) => {
+                Debug.Log("AuthManager.OnAchievementUnlockButtonClicked s:" + s);
+            });
     }
 // #endif
 }

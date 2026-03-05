@@ -167,8 +167,15 @@ public class AuthManager : MonoBehaviour
         //     ShowStartPanel();
         // }
         // StartCoroutine(PostScore());
-        StartCoroutine(VerifyServerConnectionRoutine());
+        PlayGamesPlatform.Instance.Authenticate(ProcessAuthentication);
 // #endif
+    }
+    
+    internal void ProcessAuthentication(SignInStatus status) {
+        if (status == SignInStatus.Success) {
+            Debug.Log("AuthManager Authenticate Success");
+            StartCoroutine(VerifyServerConnectionRoutine());
+        }
     }
 
     private void SilentCredMan() {

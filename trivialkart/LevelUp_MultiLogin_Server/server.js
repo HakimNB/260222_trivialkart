@@ -58,7 +58,7 @@ const verifyToken = (req, res, next) => {
 
 let nextInGameAccountId = 1001;
 
-const SERVER_NAME = "Prod_Server";
+const SERVER_NAME = process.env.SERVER_NAME;
 
 app.post('/connection_check', (req, res) => {
     const clientProvidedId = req.body.webClientId;

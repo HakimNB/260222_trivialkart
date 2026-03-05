@@ -7,15 +7,15 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 
-#if PGS_V1 || PGS_V2
+// #if PGS_V1 || PGS_V2
 // using Facebook.Unity;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
-#endif
+// #endif
 
 public class AuthManager : MonoBehaviour
 {
-#if PGS_V1 || PGS_V2
+// #if PGS_V1 || PGS_V2
     // --- UI REFERENCES ---
     private GameObject startPanel;
     private GameObject loginButtonsPanel;
@@ -34,38 +34,38 @@ public class AuthManager : MonoBehaviour
     // --- STATE VARIABLES ---
     private string customJwtToken;
 
-#if PGS_V2
+// #if PGS_V2
     // V2 (CredMan) Specific Variables
     private volatile bool googleTaskComplete = false;
     private string authCodeToExchange = null;
     private string credManError = null;
-#endif
+// #endif
 
     public string serverUrl;
     public string webClientId;
 
     // --- ENDPOINTS ---
-#if PGS_V1
-    private const string verify_and_link_google = "http://192.168.0.101:3000/verify_and_link_google";
-    private const string verify_and_link_facebook = "http://192.168.0.101:3000/verify_and_link_facebook";
-    private const string post_count = "http://192.168.0.101:3000/post_count";
-#elif PGS_V2
+// #if PGS_V1
+//     private const string verify_and_link_google = "http://192.168.0.101:3000/verify_and_link_google";
+//     private const string verify_and_link_facebook = "http://192.168.0.101:3000/verify_and_link_facebook";
+//     private const string post_count = "http://192.168.0.101:3000/post_count";
+// #elif PGS_V2
     private string exchange_authcode_and_link;
     private string verify_and_link_facebook;
     private string post_count;
     private string connection_check_url;
-#endif
+// #endif
 
     // --- REQUEST/RESPONSE OBJECTS ---
     [System.Serializable]
     private class GoogleAuthRequest
     {
-#if PGS_V1
-        public string idToken;
-        public string playerID;
-#elif PGS_V2
+// #if PGS_V1
+//         public string idToken;
+//         public string playerID;
+// #elif PGS_V2
         public string authCode;
-#endif
+// #endif
     }
 
     [System.Serializable]
@@ -86,12 +86,12 @@ public class AuthManager : MonoBehaviour
     private void Awake()
     {
         // --- 1. ENDPOINT SETUP ---
-#if PGS_V2
+// #if PGS_V2
         exchange_authcode_and_link = serverUrl + "/exchange_authcode_and_link";
         verify_and_link_facebook = serverUrl + "/verify_and_link_facebook";
         post_count = serverUrl + "/post_count";
         connection_check_url = serverUrl + "/connection_check";
-#endif
+// #endif
         
         // --- 2. UI SETUP ---
         startPanel = GameObject.Find("Canvas").transform.Find("StartPanel").gameObject;
@@ -111,22 +111,22 @@ public class AuthManager : MonoBehaviour
 
         // --- 3. PLATFORM INITIALIZATION ---
 
-#if PGS_V1
-        // [RESTORED] V1 Initialization Logic
-        statusText.text = "Initializing PGS v1...";
-        var config = new PlayGamesClientConfiguration.Builder()
-            .RequestEmail()
-            .RequestIdToken() // Required for ID Token flow
-            .Build();
+// #if PGS_V1
+//         // [RESTORED] V1 Initialization Logic
+//         statusText.text = "Initializing PGS v1...";
+//         var config = new PlayGamesClientConfiguration.Builder()
+//             .RequestEmail()
+//             .RequestIdToken() // Required for ID Token flow
+//             .Build();
 
-        PlayGamesPlatform.InitializeInstance(config);
-        PlayGamesPlatform.DebugLogEnabled = true;
-        PlayGamesPlatform.Activate();
-#elif PGS_V2
+//         PlayGamesPlatform.InitializeInstance(config);
+//         PlayGamesPlatform.DebugLogEnabled = true;
+//         PlayGamesPlatform.Activate();
+// #elif PGS_V2
         // V2 Initialization
         statusText.text = "Initializing...";
         PlayGamesPlatform.DebugLogEnabled = true;
-#endif
+// #endif
 
         // Facebook Init (Common)
         // if (!FB.IsInitialized) FB.Init(OnInitComplete, OnHideUnity);
@@ -145,10 +145,10 @@ public class AuthManager : MonoBehaviour
         // --- 5. STARTUP AUTH LOGIC ---
         statusText.text = "Checking credentials...";
 
-#if PGS_V1
-        // [RESTORED] V1 Silent Sign-In
-        PlayGamesPlatform.Instance.Authenticate(OnSilentSignInFinished, true);
-#elif PGS_V2
+// #if PGS_V1
+//         // [RESTORED] V1 Silent Sign-In
+//         PlayGamesPlatform.Instance.Authenticate(OnSilentSignInFinished, true);
+// #elif PGS_V2
         // V2 Session Check / Silent CredMan
         // if (TryLoadSession())
         // {
@@ -167,7 +167,7 @@ public class AuthManager : MonoBehaviour
         // }
         // StartCoroutine(PostScore());
         StartCoroutine(VerifyServerConnectionRoutine());
-#endif
+// #endif
     }
 
     private IEnumerator VerifyServerConnectionRoutine()
@@ -217,7 +217,7 @@ public class AuthManager : MonoBehaviour
     // --- MAIN UPDATE LOOP ---
     private void Update()
     {
-#if PGS_V2
+// #if PGS_V2
         // V2 Main Thread Dispatcher
         if (googleTaskComplete)
         {
@@ -237,89 +237,89 @@ public class AuthManager : MonoBehaviour
             credManError = null;
             authCodeToExchange = null;
         }
-#endif
+// #endif
     }
 
     // ========================================================================
     //                          PGS V1 LOGIC [RESTORED]
     // ========================================================================
-#if PGS_V1
-    private void OnSilentSignInFinished(bool success)
-    {
-        if (success)
-        {
-            Debug.Log("PGS Silent sign-in successful. Verifying...");
-            statusText.text = "Verifying with server...";
-            ProcessAuthenticationResult(true);
-        }
-        else
-        {
-            Debug.Log("PGS Silent sign-in failed. Showing start panel.");
-            statusText.text = "Please sign in.";
-            ShowStartPanel();
-        }
-    }
+// #if PGS_V1
+//     private void OnSilentSignInFinished(bool success)
+//     {
+//         if (success)
+//         {
+//             Debug.Log("PGS Silent sign-in successful. Verifying...");
+//             statusText.text = "Verifying with server...";
+//             ProcessAuthenticationResult(true);
+//         }
+//         else
+//         {
+//             Debug.Log("PGS Silent sign-in failed. Showing start panel.");
+//             statusText.text = "Please sign in.";
+//             ShowStartPanel();
+//         }
+//     }
     
-    private void ProcessAuthenticationResult(bool success)
-    {
-        if (success)
-        {
-            statusText.text = "Success! Getting ID Token...";
-            string idToken = PlayGamesPlatform.Instance.GetIdToken();
-            string playerID = PlayGamesPlatform.Instance.GetUserId();
+//     private void ProcessAuthenticationResult(bool success)
+//     {
+//         if (success)
+//         {
+//             statusText.text = "Success! Getting ID Token...";
+//             string idToken = PlayGamesPlatform.Instance.GetIdToken();
+//             string playerID = PlayGamesPlatform.Instance.GetUserId();
 
-            if (!string.IsNullOrEmpty(idToken))
-            {
-                StartCoroutine(VerifyAndLinkGoogleAccount(idToken, playerID));
-            }
-            else
-            {
-                Debug.LogError("Failed to get ID Token.");
-                statusText.text = "Failed to get ID Token.";
-                ShowStartPanel();
-            }
-        }
-        else
-        {
-            Debug.LogError("PGS Sign-in failed/cancelled.");
-            statusText.text = "Sign-in failed.";
-            ShowStartPanel();
-        }
-    }
+//             if (!string.IsNullOrEmpty(idToken))
+//             {
+//                 StartCoroutine(VerifyAndLinkGoogleAccount(idToken, playerID));
+//             }
+//             else
+//             {
+//                 Debug.LogError("Failed to get ID Token.");
+//                 statusText.text = "Failed to get ID Token.";
+//                 ShowStartPanel();
+//             }
+//         }
+//         else
+//         {
+//             Debug.LogError("PGS Sign-in failed/cancelled.");
+//             statusText.text = "Sign-in failed.";
+//             ShowStartPanel();
+//         }
+//     }
     
-    private IEnumerator VerifyAndLinkGoogleAccount(string idToken, string playerID)
-    {
-        GoogleAuthRequest requestData = new GoogleAuthRequest { idToken = idToken, playerID = playerID };
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
+//     private IEnumerator VerifyAndLinkGoogleAccount(string idToken, string playerID)
+//     {
+//         GoogleAuthRequest requestData = new GoogleAuthRequest { idToken = idToken, playerID = playerID };
+//         byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
 
-        UnityWebRequest request = new UnityWebRequest(verify_and_link_google, "POST");
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json");
+//         UnityWebRequest request = new UnityWebRequest(verify_and_link_google, "POST");
+//         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+//         request.downloadHandler = new DownloadHandlerBuffer();
+//         request.SetRequestHeader("Content-Type", "application/json");
 
-        yield return request.SendWebRequest();
+//         yield return request.SendWebRequest();
 
-        if (request.result != UnityWebRequest.Result.Success)
-        {
-            Debug.LogError($"Error: {request.error}");
-            statusText.text = "Server Link Failed.";
-            ShowStartPanel();
-        }
-        else
-        {
-            var response = JsonUtility.FromJson<LinkResponse>(request.downloadHandler.text);
-            statusText.text = $"Signed in as: {response.email}";
-            incText.text = response.inGameCount.ToString("000");
-            customJwtToken = response.jwtToken;
-            ShowGamePanel();
-        }
-    }
-#endif
+//         if (request.result != UnityWebRequest.Result.Success)
+//         {
+//             Debug.LogError($"Error: {request.error}");
+//             statusText.text = "Server Link Failed.";
+//             ShowStartPanel();
+//         }
+//         else
+//         {
+//             var response = JsonUtility.FromJson<LinkResponse>(request.downloadHandler.text);
+//             statusText.text = $"Signed in as: {response.email}";
+//             incText.text = response.inGameCount.ToString("000");
+//             customJwtToken = response.jwtToken;
+//             ShowGamePanel();
+//         }
+//     }
+// #endif
 
     // ========================================================================
     //                          PGS V2 LOGIC (CredMan + Caching)
     // ========================================================================
-#if PGS_V2
+// #if PGS_V2
     private bool TryLoadSession()
     {
         string token = PlayerPrefs.GetString("Cached_JWT", null);
@@ -406,7 +406,7 @@ public class AuthManager : MonoBehaviour
     {
         PlayGamesPlatform.Instance.Authenticate((SignInStatus status) => { Debug.Log("PGS Auth: " + status); });
     }
-#endif
+// #endif
 
     // ========================================================================
     //                          COMMON / UI HANDLERS
@@ -414,32 +414,32 @@ public class AuthManager : MonoBehaviour
     private void GetStartedClicked()
     {
         statusText.text = "Signing in...";
-#if PGS_V1
-        PlayGamesPlatform.Instance.Authenticate(ProcessAuthenticationResult, false);
-#elif PGS_V2
+// #if PGS_V1
+//         PlayGamesPlatform.Instance.Authenticate(ProcessAuthenticationResult, false);
+// #elif PGS_V2
         StartSignIn(true);
-#endif
+// #endif
     }
     
     private void OnSignInWithGoogleClicked()
     {
         statusText.text = "Signing in with Google...";
         loginButtonsPanel.SetActive(false);
-#if PGS_V1
-        PlayGamesPlatform.Instance.Authenticate(ProcessAuthenticationResult, false);
-#elif PGS_V2
+// #if PGS_V1
+//         PlayGamesPlatform.Instance.Authenticate(ProcessAuthenticationResult, false);
+// #elif PGS_V2
         StartSignIn(true);
-#endif
+// #endif
     }
 
     private void OnSignOutClicked()
     {
         statusText.text = "Signing out...";
-#if PGS_V1
-        if (PlayGamesPlatform.Instance.IsAuthenticated()) PlayGamesPlatform.Instance.SignOut();
-#elif PGS_V2
+// #if PGS_V1
+//         if (PlayGamesPlatform.Instance.IsAuthenticated()) PlayGamesPlatform.Instance.SignOut();
+// #elif PGS_V2
         ClearSession();
-#endif
+// #endif
         // if (FB.IsLoggedIn) FB.LogOut();
         customJwtToken = null;
         ShowStartPanel();
@@ -474,9 +474,9 @@ public class AuthManager : MonoBehaviour
             if (request.responseCode == 401 || request.responseCode == 403)
             {
                 statusText.text = "Session expired.";
-#if PGS_V2
+// #if PGS_V2
                 ClearSession();
-#endif
+// #endif
                 ShowStartPanel();
             }
         }
@@ -484,9 +484,9 @@ public class AuthManager : MonoBehaviour
         {
             var response = JsonUtility.FromJson<LinkResponse>(request.downloadHandler.text);
             incText.text = response.inGameCount.ToString("000");
-#if PGS_V2
+// #if PGS_V2
             PlayerPrefs.SetInt("Cached_Count", response.inGameCount);
-#endif
+// #endif
         }
     }
 
@@ -515,9 +515,9 @@ public class AuthManager : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             var response = JsonUtility.FromJson<LinkResponse>(request.downloadHandler.text);
-#if PGS_V2
+// #if PGS_V2
             SaveSession(response);
-#endif
+// #endif
             customJwtToken = response.jwtToken;
             statusText.text = $"Signed in as: {response.email}";
             incText.text = response.inGameCount.ToString("000");
@@ -542,5 +542,5 @@ public class AuthManager : MonoBehaviour
         if (PlayGamesPlatform.Instance.IsAuthenticated())
             PlayGamesPlatform.Instance.ReportProgress(GPGSIds.achievement_tk_achievement_rand, 100f, (bool s) => {});
     }
-#endif
+// #endif
 }

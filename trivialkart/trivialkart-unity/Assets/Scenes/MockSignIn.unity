@@ -1549,8 +1549,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2311910cc97440aebb79108e9bf4d5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AuthManager
-  serverUrl: http://192.168.0.103:3001
-  webClientId: 
+  serverUrl: http://10.222.68.126:3000
+  webClientId: 1044312393953-eq0gni71js6od3c4cqjjc2i167men5qq.apps.googleusercontent.com
 --- !u!1 &1162833870
 GameObject:
   m_ObjectHideFlags: 0

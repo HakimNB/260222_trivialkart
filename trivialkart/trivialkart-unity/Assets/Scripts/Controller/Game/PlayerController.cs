@@ -72,6 +72,10 @@ public class PlayerController : MonoBehaviour
         _camOffset = cam.transform.position - _carStartPos;
     }
 
+    public void UpdateCarInUse()
+    {
+    }
+
     private void SetCarInUseState(GameObject carInUseGameObj)
     {
         carInUseGameObj.SetActive(true);

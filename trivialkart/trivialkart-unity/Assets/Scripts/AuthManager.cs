@@ -591,10 +591,11 @@ public class AuthManager : MonoBehaviour
     private void OnShowAchievementsButtonClicked() { Debug.Log("AuthManager.OnShowAchievementsButtonClicked "); PlayGamesPlatform.Instance.ShowAchievementsUI(); }
     private void OnAchievementUnlockButtonClicked() {
         Debug.Log("AuthManager.OnAchievementUnlockButtonClicked isAuthenticated: " + PlayGamesPlatform.Instance.IsAuthenticated());
-        if (PlayGamesPlatform.Instance.IsAuthenticated())
-            PlayGamesPlatform.Instance.ReportProgress(GPGSIds.achievement_tk_achievement_rand, 100f, (bool s) => {
-                Debug.Log("AuthManager.OnAchievementUnlockButtonClicked s:" + s);
-            });
+        PGSGameStatsManager.Instance.SingleEventLog();
+        // if (PlayGamesPlatform.Instance.IsAuthenticated())
+        //     PlayGamesPlatform.Instance.ReportProgress(GPGSIds.achievement_tk_achievement_rand, 100f, (bool s) => {
+        //         Debug.Log("AuthManager.OnAchievementUnlockButtonClicked s:" + s);
+        //     });
     }
 // #endif
 }

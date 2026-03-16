@@ -28,6 +28,7 @@ public static class GPGSIds
         public const string achievement_tk_achievement_truck = "CgkI4ZH6rrIeEAIQBA"; // <GPGSID>
         public const string leaderboard_tk_leaderboard_distance = "CgkI4ZH6rrIeEAIQBg"; // <GPGSID>
         public const string achievement_tk_achievement_drive = "CgkI4ZH6rrIeEAIQAw"; // <GPGSID>
+        public const string achievement_tk_achievement_drive2 = "CgkI4ZH6rrIeEAIQEg"; // <GPGSID>
 
 }
 

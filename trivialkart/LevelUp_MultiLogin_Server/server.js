@@ -302,17 +302,44 @@ app.post('/post_count', verifyToken, async (req, res) => {
 });
 
 app.post('/send_single_event', async (req, res) => {
-    const distance = req.distance ?? "-1";
+    const body = req.body;
+    // console.log('body: ', body); // body:  { distance: 5.758289813995361 }
 
-    // 2. Get the user's info FROM THE MIDDLEWARE (req.user)
-    const playerID = req.user?.playerID ?? "";
-    const url = `https://games.googleapis.com/games/v1/players/${playerID}/gameStats:batchRecordEvents`;
+    const { distance, playerId } = body;
+    console.log(`distance: ${distance} playerId: ${playerId}`);
+
+    // Get the user's info FROM THE MIDDLEWARE (req.user)
+    // const playerID = req.user?.playerID ?? ""; // a_2389139752014657965
+    const url = `https://games.googleapis.com/games/v1/players/${playerId}/gameStats:batchRecordEvents`;
+
+    let currentTime = new Date().toISOString();
+    currentTime = currentTime.split('.')[0] + "Z";
+
+    const response = await fetch(url, {
+        method: 'POST',
+        body: {
+            "packageName": "com.WickedCube.TrivialKart",
+            "requestTime": currentTime,
+            "events": [
+                {
+                    "eventId": "distance",
+                    "value": distance
+                }
+            ]
+        }
+        ,
+    });
+
+    console.log(response.status + response.statusText); // 401 Unauthorized
+    console.log(response.data); // undefined
 
     // TODO: send request to Play Server
     return res.status(200).json({
         message: "Single event sent successfully",
         url,
-        distance
+        playerId,
+        distance,
+        data: response.data,
     });
 });
 

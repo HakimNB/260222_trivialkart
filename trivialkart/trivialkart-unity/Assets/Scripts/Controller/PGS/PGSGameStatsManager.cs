@@ -14,7 +14,10 @@ public class PGSGameStatsManager : MonoBehaviour
    public float distanceTraveled = 0.0f;
     
     [System.Serializable]
-    private class DistanceTravelledRequest { public float distance; }
+    private class DistanceTravelledRequest { 
+        public string playerId;
+        public float distance; 
+    }
     
     public TMPro.TextMeshProUGUI TMP_DistanceTraveled;
     
@@ -86,7 +89,12 @@ public class PGSGameStatsManager : MonoBehaviour
     private IEnumerator SendSingleEventLog()
     {
         Debug.Log("PGSGameStatsManager.SendSingleEventLog");
-        DistanceTravelledRequest requestData = new DistanceTravelledRequest { distance = this.distanceTraveled };
+        string playerId = PlayGamesPlatform.Instance.GetUserId();
+        Debug.Log("PGSGameStatsManager.SendSingleEventLog.Player ID: " + playerId);
+        DistanceTravelledRequest requestData = new DistanceTravelledRequest { 
+            playerId = playerId,
+            distance = this.distanceTraveled 
+        };
         byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
         UnityWebRequest request = new UnityWebRequest(AuthManager.GetInstance().serverUrl + "/send_single_event", "POST");
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);

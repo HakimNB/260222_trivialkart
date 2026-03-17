@@ -83,9 +83,15 @@ public class AuthManager : MonoBehaviour
         public string jwtToken;
     }
 
+    private static AuthManager _instance = null;
+    public static AuthManager GetInstance() {
+        return _instance;
+    }
+
     private void Awake()
     {
         Debug.Log("AuthManager.Awake ");
+        _instance = this;
         // --- 1. ENDPOINT SETUP ---
 // #if PGS_V2
         exchange_authcode_and_link = serverUrl + "/exchange_authcode_and_link";

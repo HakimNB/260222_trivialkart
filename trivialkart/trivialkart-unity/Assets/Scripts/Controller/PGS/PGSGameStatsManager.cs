@@ -1,13 +1,23 @@
+using System;
+using System.Text;
+using System.Collections;
 using System.Collections.Generic;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class PGSGameStatsManager : MonoBehaviour
 {
     public static PGSGameStatsManager Instance { get; private set; }
-    public float distanceTraveled = 0.0f;
+   
+   public float distanceTraveled = 0.0f;
+    
+    [System.Serializable]
+    private class DistanceTravelledRequest { public float distance; }
+    
     public TMPro.TextMeshProUGUI TMP_DistanceTraveled;
+    
     private void Awake()
     {
         Debug.Log("PGSGameStatsManager.Awake");
@@ -28,7 +38,8 @@ public class PGSGameStatsManager : MonoBehaviour
         if (TMP_DistanceTraveled != null ) {
             TMP_DistanceTraveled.text = distanceTraveled.ToString("F1");
         }
-        SingleEventLog();
+        //SingleEventLog();
+        SingleServerEventLog();
     }
     
     public void SingleEventLog()
@@ -65,5 +76,32 @@ public class PGSGameStatsManager : MonoBehaviour
             .Build()
         };
         PlayGamesPlatform.Instance.RecordEvents(events);
+    }
+
+    public void SingleServerEventLog() {
+        Debug.Log("PGSGameStatsManager.SingleServerEventLog");
+        StartCoroutine(SendSingleEventLog());
+    }
+
+    private IEnumerator SendSingleEventLog()
+    {
+        Debug.Log("PGSGameStatsManager.SendSingleEventLog");
+        DistanceTravelledRequest requestData = new DistanceTravelledRequest { distance = this.distanceTraveled };
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
+        UnityWebRequest request = new UnityWebRequest(AuthManager.GetInstance().serverUrl + "/send_single_event", "POST");
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("PGSGameStatsManager.SendSingleEventLog success: " + request.downloadHandler.text);
+        }
+        else
+        {
+            Debug.Log("PGSGameStatsManager.SendSingleEventLog failed. Error: " + request.error);
+        }   
     }
 }

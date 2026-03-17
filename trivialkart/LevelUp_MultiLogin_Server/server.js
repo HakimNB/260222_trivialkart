@@ -301,6 +301,21 @@ app.post('/post_count', verifyToken, async (req, res) => {
     }
 });
 
+app.post('/send_single_event', async (req, res) => {
+    const distance = req.distance ?? "-1";
+
+    // 2. Get the user's info FROM THE MIDDLEWARE (req.user)
+    const playerID = req.user?.playerID ?? "";
+    const url = `https://games.googleapis.com/games/v1/players/${playerID}/gameStats:batchRecordEvents`;
+
+    // TODO: send request to Play Server
+    return res.status(200).json({
+        message: "Single event sent successfully",
+        url,
+        distance
+    });
+});
+
 async function getPlayerInfo(accessToken) {
     try {
         // Note: We use the v1 REST endpoint to get the legacy Player ID.

@@ -41,8 +41,10 @@ public class PGSGameStatsManager : MonoBehaviour
         if (TMP_DistanceTraveled != null ) {
             TMP_DistanceTraveled.text = distanceTraveled.ToString("F1");
         }
-        //SingleEventLog();
-        SingleServerEventLog();
+        
+        //SingleEventLog(); // client-side working
+
+        // SingleServerEventLog(); // server-side not yet working
     }
     
     public void SingleEventLog()

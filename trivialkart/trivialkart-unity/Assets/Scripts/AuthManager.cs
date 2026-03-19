@@ -454,7 +454,16 @@ public class AuthManager : MonoBehaviour
     private void SignInToPlayGamesServices()
     {
         Debug.Log("AuthManager.SignInToPlayGamesServices ");
-        PlayGamesPlatform.Instance.Authenticate((SignInStatus status) => { Debug.Log("PGS Auth: " + status); });
+        PlayGamesPlatform.Instance.Authenticate((SignInStatus status) => { 
+            Debug.Log("PGS Auth: " + status); 
+            if (status == SignInStatus.Success) {
+                // *** [Play Games Plugin 2.1.0] 03/19/26 12:40:24 +08:00 ERROR: Requesting server side access task failed - com.google.android.gms.common.api.ApiException: 10: 
+                PlayGamesPlatform.Instance.RequestServerSideAccess(true, (string serverAuthCode) => {
+                    Debug.Log("Server Auth Code: " + serverAuthCode); // Server Auth Code: ""
+                    StartCoroutine(ExchangeAuthcodeAndLink(serverAuthCode));
+                });
+            }
+        });
     }
 // #endif
 
@@ -511,7 +520,7 @@ public class AuthManager : MonoBehaviour
     // --- SERVER (COMMON) ---
     private IEnumerator PostScore()
     {
-        Debug.Log("AuthManager.PostScore ");
+        Debug.Log("AuthManager.PostScore customJwtToken: " + customJwtToken);
         if (string.IsNullOrEmpty(customJwtToken)) yield break;
         PostCountRequest requestData = new PostCountRequest { count = int.Parse(incText.text) };
         byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
@@ -594,10 +603,21 @@ public class AuthManager : MonoBehaviour
     private void IAlreadyHaveButtonClicked() { Debug.Log("AuthManager.IAlreadyHaveButtonClicked "); startPanel.SetActive(false); loginButtonsPanel.SetActive(true); }
     private void ShowGamePanel() { Debug.Log("AuthManager.ShowGamePanel "); gamePanel.SetActive(true); startPanel.SetActive(false); loginButtonsPanel.SetActive(false); }
     private void ShowStartPanel() { Debug.Log("AuthManager.ShowStartPanel "); gamePanel.SetActive(false); startPanel.SetActive(true); loginButtonsPanel.SetActive(false); }
-    private void OnShowAchievementsButtonClicked() { Debug.Log("AuthManager.OnShowAchievementsButtonClicked "); PlayGamesPlatform.Instance.ShowAchievementsUI(); }
+    private void OnShowAchievementsButtonClicked_ShowAchievementBuiltInUI() { 
+        Debug.Log("AuthManager.OnShowAchievementsButtonClicked "); 
+        PlayGamesPlatform.Instance.ShowAchievementsUI(); // working
+    }
+    private void OnShowAchievementsButtonClicked() {
+        Debug.Log("AuthManager.OnShowAchievementsButtonClicked ");
+        // Start Sign In
+        // StartSignIn(true); // use CredMan
+    }
     private void OnAchievementUnlockButtonClicked() {
         Debug.Log("AuthManager.OnAchievementUnlockButtonClicked isAuthenticated: " + PlayGamesPlatform.Instance.IsAuthenticated());
-        PGSGameStatsManager.Instance.SingleEventLog();
+
+        SignInToPlayGamesServices();
+
+        // PGSGameStatsManager.Instance.SingleEventLog();
         // if (PlayGamesPlatform.Instance.IsAuthenticated())
         //     PlayGamesPlatform.Instance.ReportProgress(GPGSIds.achievement_tk_achievement_rand, 100f, (bool s) => {
         //         Debug.Log("AuthManager.OnAchievementUnlockButtonClicked s:" + s);

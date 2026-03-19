@@ -306,7 +306,7 @@ app.post('/send_single_event', async (req, res) => {
     // console.log('body: ', body); // body:  { distance: 5.758289813995361 }
 
     const { distance, playerId } = body;
-    console.log(`distance: ${distance} playerId: ${playerId}`);
+    // console.log(`distance: ${distance} playerId: ${playerId}`);
 
     // Get the user's info FROM THE MIDDLEWARE (req.user)
     // const playerID = req.user?.playerID ?? ""; // a_2389139752014657965
@@ -330,8 +330,8 @@ app.post('/send_single_event', async (req, res) => {
         ,
     });
 
-    console.log(response.status + response.statusText); // 401 Unauthorized
-    console.log(response.data); // undefined
+    console.log(`responseStatus: ${response.status} text: ${response.statusText}`); // 401 Unauthorized
+    // console.log(response.data); // undefined
 
     // TODO: send request to Play Server
     return res.status(200).json({

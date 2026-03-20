@@ -144,6 +144,7 @@ app.post('/exchange_authcode_and_link', async (req, res) => {
     }
     try {
         const { tokens } = await client.getToken(authCode);
+        console.log(`tokens: ${JSON.stringify(tokens)}`); // tokens: {"access_token":"","scope":"https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/games_lite","token_type":"Bearer","expiry_date":1773902295498}
         const idToken = tokens.id_token;
         const accessToken = tokens.access_token;
         if (!idToken) {
@@ -298,6 +299,83 @@ app.post('/post_count', verifyToken, async (req, res) => {
     } catch (error) {
         console.error("Error during posting count:", error.message);
         res.status(500).json({ error: "Failed to post count" });
+    }
+});
+
+// ---
+// NEW: PGS v2 (v0.11.x+) ENDPOINT
+// This endpoint receives a one-time Auth Code from the client,
+// exchanges it for tokens, verifies the token, and links the account
+// ---
+app.post('/exchange_authcode_for_tokens', async (req, res) => {
+    const { authCode } = req.body;
+    if (!authCode) {
+        return res.status(400).json({ error: "authCode is required" });
+    }
+    try {
+        const { tokens } = await client.getToken(authCode);
+        console.log(`exchange_authcode_for_tokens tokens: ${JSON.stringify(tokens)}`); // tokens: {"access_token":"","scope":"https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/games_lite","token_type":"Bearer","expiry_date":1773902295498}
+        const idToken = tokens.id_token;
+        const accessToken = tokens.access_token;
+        const refreshToken = tokens.refresh_token;
+        // if (!idToken) {
+        //     throw new Error("Failed to retrieve id_token from authCode exchange.");
+        // }
+        // const ticket = await client.verifyIdToken({
+        //     idToken: idToken,
+        //     audience: WEB_CLIENT_ID,
+        // });
+        // const payload = ticket.getPayload();
+        // const email = payload.email;
+        // const googleId = payload.sub;
+        const playerInfo = await getPlayerInfo(accessToken);
+        const playerID = playerInfo.playerId;
+
+        console.log(`exchange_authcode_for_tokens playerInfo: ${JSON.stringify(playerInfo)}`);
+        console.log(`exchange_authcode_for_tokens playerID: ${playerID}`);
+
+        if (!playerID) {
+            console.error("Payload dump:", tokens);
+            throw new Error("player_id not found in token payload. Ensure client requested 'https://www.googleapis.com/auth/games_lite' scope.");
+        }
+
+        res.status(200).json({
+            playerID,
+            accessToken,
+            refreshToken
+        });
+
+        // let inGameAccountID;
+        // if (userDatabase_v1.has(playerID)) {
+        //     inGameAccountID = userDatabase_v1.get(playerID);
+        //     userDatabase_v2.set(googleId, inGameAccountID);
+        //     userDatabase_v1.delete(playerID);
+        // }
+        // else if (userDatabase_v2.has(googleId)) {
+        //     inGameAccountID = userDatabase_v2.get(googleId);
+        // }
+        // else {
+        //     inGameAccountID = `ingame-${nextInGameAccountId++}`;
+        //     userDatabase_v2.set(googleId, inGameAccountID);
+        //     inGameDatabase.set(inGameAccountID, 0);
+        // }
+
+        // const tokenPayload = {
+        //     playerID: googleId,
+        //     inGameAccountID: inGameAccountID
+        // };
+
+        // const customJwtToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
+        // res.status(200).json({
+        //     playerID: playerID,
+        //     email: email,
+        //     inGameAccountID: inGameAccountID,
+        //     inGameCount: inGameDatabase.get(inGameAccountID),
+        //     jwtToken: customJwtToken
+        // });
+    } catch (error) {
+        console.error("Error during authCode exchange:", error.message);
+        res.status(500).json({ error: "Failed to verify authentication" });
     }
 });
 

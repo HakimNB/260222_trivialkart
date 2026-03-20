@@ -34,6 +34,9 @@ public class AuthManager : MonoBehaviour
     // --- STATE VARIABLES ---
     private string customJwtToken;
 
+    public string PgsAccessToken;
+    public string PgsRefreshToken;
+
 // #if PGS_V2
     // V2 (CredMan) Specific Variables
     private volatile bool googleTaskComplete = false;
@@ -51,6 +54,7 @@ public class AuthManager : MonoBehaviour
 //     private const string post_count = "http://192.168.0.101:3000/post_count";
 // #elif PGS_V2
     private string exchange_authcode_and_link;
+    private string exchange_authcode_for_tokens;
     private string verify_and_link_facebook;
     private string post_count;
     private string connection_check_url;
@@ -83,6 +87,14 @@ public class AuthManager : MonoBehaviour
         public string jwtToken;
     }
 
+    [System.Serializable]
+    private class PgsAuthTokenResponse
+    {
+        public string playerID;
+        public string accessToken;
+        public string refreshToken;
+    }
+
     private static AuthManager _instance = null;
     public static AuthManager GetInstance() {
         return _instance;
@@ -95,6 +107,7 @@ public class AuthManager : MonoBehaviour
         // --- 1. ENDPOINT SETUP ---
 // #if PGS_V2
         exchange_authcode_and_link = serverUrl + "/exchange_authcode_and_link";
+        exchange_authcode_for_tokens = serverUrl + "/exchange_authcode_for_tokens";
         verify_and_link_facebook = serverUrl + "/verify_and_link_facebook";
         post_count = serverUrl + "/post_count";
         connection_check_url = serverUrl + "/connection_check";
@@ -450,6 +463,39 @@ public class AuthManager : MonoBehaviour
             SignInToPlayGamesServices();
         }
     }
+
+    private IEnumerator ExchangeAuthcodeForTokens(string serverAuthCode)
+    {
+        Debug.Log("AuthManager.ExchangeAuthcodeForTokens serverAuthCode:" + serverAuthCode);
+        GoogleAuthRequest requestData = new GoogleAuthRequest { authCode = serverAuthCode };
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
+
+        UnityWebRequest request = new UnityWebRequest(exchange_authcode_for_tokens, "POST");
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        yield return request.SendWebRequest();
+        
+        if (request.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogError($"Error: {request.error}");
+            statusText.text = "Server Link Failed.";
+            ShowStartPanel();
+        }
+        else
+        {
+            var response = JsonUtility.FromJson<PgsAuthTokenResponse>(request.downloadHandler.text);
+            // SaveSession(response);
+            statusText.text = $"Signed in as: {response.playerID}";
+            Debug.Log("AuthManager.ExchangeAuthcodeForTokens response:" + response);
+            PgsAccessToken = response.accessToken;
+            PgsRefreshToken = response.refreshToken;
+            // incText.text = response.inGameCount.ToString("000");
+            // ShowGamePanel();
+            // SignInToPlayGamesServices();
+        }
+    }
     
     private void SignInToPlayGamesServices()
     {
@@ -460,7 +506,7 @@ public class AuthManager : MonoBehaviour
                 // *** [Play Games Plugin 2.1.0] 03/19/26 12:40:24 +08:00 ERROR: Requesting server side access task failed - com.google.android.gms.common.api.ApiException: 10: 
                 PlayGamesPlatform.Instance.RequestServerSideAccess(true, (string serverAuthCode) => {
                     Debug.Log("Server Auth Code: " + serverAuthCode); // Server Auth Code: ""
-                    StartCoroutine(ExchangeAuthcodeAndLink(serverAuthCode));
+                    StartCoroutine(ExchangeAuthcodeForTokens(serverAuthCode));
                 });
             }
         });
@@ -611,6 +657,7 @@ public class AuthManager : MonoBehaviour
         Debug.Log("AuthManager.OnShowAchievementsButtonClicked ");
         // Start Sign In
         // StartSignIn(true); // use CredMan
+        PGSGameStatsManager.Instance.SingleServerEventLog();
     }
     private void OnAchievementUnlockButtonClicked() {
         Debug.Log("AuthManager.OnAchievementUnlockButtonClicked isAuthenticated: " + PlayGamesPlatform.Instance.IsAuthenticated());

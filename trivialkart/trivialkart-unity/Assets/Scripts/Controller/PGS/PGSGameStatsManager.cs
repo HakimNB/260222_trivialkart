@@ -102,6 +102,7 @@ public class PGSGameStatsManager : MonoBehaviour
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer " + AuthManager.GetInstance().PgsAccessToken);
 
         yield return request.SendWebRequest();
 

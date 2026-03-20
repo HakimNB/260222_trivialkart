@@ -402,16 +402,25 @@ app.post('/send_single_event', async (req, res) => {
             'Authorization': authHeader
         },
         body: JSON.stringify({
+            "playerId": playerId,
             "packageName": "com.WickedCube.TrivialKart",
-            "requestTime": currentTime,
+            "requestTime": {
+                "seconds": 1773994812,
+                "nanos": 140000000
+            },
             "events": [
                 {
-                    "eventId": "distance",
-                    "eventName": "distance",
+                    "eventId": "0213c1c9-e1a1-42e3-94a4-b81ba5e94ba5",
+                    "eventName": "eName",
                     "eventProperties": {
-                        "distance": distance
+                        "distance": {
+                            "intValue": "13"
+                        }
                     },
-                    "eventTime": currentTime
+                    "eventTime": {
+                        "seconds": 1773994812,
+                        "nanos": 140000000
+                    }
                 }
             ]
         })

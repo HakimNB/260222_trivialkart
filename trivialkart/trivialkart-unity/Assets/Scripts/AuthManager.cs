@@ -556,11 +556,13 @@ public class AuthManager : MonoBehaviour
     private void OnIncButtonClicked()
     {
         Debug.Log("AuthManager.OnIncButtonClicked ");
-        int curr = 0;
-        int.TryParse(incText.text, out curr);
-        curr++;
-        incText.text = curr.ToString("000");
-        StartCoroutine(PostScore());
+        // int curr = 0;
+        // int.TryParse(incText.text, out curr);
+        // curr++;
+        // incText.text = curr.ToString("000");
+        // StartCoroutine(PostScore());
+
+        PGSGameStatsManager.Instance.SingleEventLog();
     }
     
     // --- SERVER (COMMON) ---

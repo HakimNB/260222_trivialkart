@@ -393,22 +393,31 @@ app.post('/send_single_event', async (req, res) => {
     let currentTime = new Date().toISOString();
     currentTime = currentTime.split('.')[0] + "Z";
 
+    const authHeader = req.headers['authorization'];
+
     const response = await fetch(url, {
         method: 'POST',
-        body: {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': authHeader
+        },
+        body: JSON.stringify({
             "packageName": "com.WickedCube.TrivialKart",
             "requestTime": currentTime,
             "events": [
                 {
                     "eventId": "distance",
-                    "value": distance
+                    "eventName": "distance",
+                    "eventProperties": {
+                        "distance": distance
+                    },
+                    "eventTime": currentTime
                 }
             ]
-        }
-        ,
+        })
     });
 
-    console.log(`responseStatus: ${response.status} text: ${response.statusText}`); // 401 Unauthorized
+    console.log(`responseStatus: ${response.status} text: ${response.statusText}`); // 400 Bad Request
     // console.log(response.data); // undefined
 
     // TODO: send request to Play Server

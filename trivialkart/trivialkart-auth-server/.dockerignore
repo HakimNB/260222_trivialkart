@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+.env
+.DS_Store
+.git
+Dockerfile
+deployment_guide.md
+implementation_plan.md
+task.md
+walkthrough.md
+service-account.json

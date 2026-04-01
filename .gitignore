@@ -10,6 +10,7 @@
 
 # Java class files
 *.class
+*.keystore
 
 # generated files
 bin/
@@ -40,3 +41,6 @@ unity/power_efficiency_demo/Temp
 unity/power_efficiency_demo/UserSettings
 unity/power_efficiency_demo/*.csproj
 unity/power_efficiency_demo/*.sln
+trivialkart/trivialkart-unity/Assets/TextMesh*
+
+*ignore*

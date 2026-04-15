@@ -754,8 +754,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: V2
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c175113e1d63148d293137d24965ccef, type: 2}
-  m_sharedMaterial: {fileID: 7811871388652843531, guid: c175113e1d63148d293137d24965ccef, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -967,8 +967,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: d67c664c946d24502a6d6dfd7d18758b, type: 2}
-  m_sharedMaterial: {fileID: 7602835714363467101, guid: d67c664c946d24502a6d6dfd7d18758b, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1561,10 +1561,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2311910cc97440aebb79108e9bf4d5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AuthManager
+  PgsPlayerId: 
+  PgsAuthCode: 
   PgsAccessToken: 
   PgsRefreshToken: 
   serverUrl: https://trivialkart-auth-server-181838787985.us-central1.run.app
-  webClientId: 1044312393953-eq0gni71js6od3c4cqjjc2i167men5qq.apps.googleusercontent.com
+  webClientId: 386447610292-t5tcudpgkndilv2fu2ss8b0h6rup2gfs.apps.googleusercontent.com
 --- !u!1 &1162833870
 GameObject:
   m_ObjectHideFlags: 0
@@ -1760,8 +1762,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 0.0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c175113e1d63148d293137d24965ccef, type: 2}
-  m_sharedMaterial: {fileID: 7811871388652843531, guid: c175113e1d63148d293137d24965ccef, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2717,7 +2719,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 536bd3ec754c9401b81dd5c1b8d8a850, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PGSGameStatsManager
-  distanceTraveled: 0
   TMP_DistanceTraveled: {fileID: 1435003512}
 --- !u!1 &1939415802
 GameObject:

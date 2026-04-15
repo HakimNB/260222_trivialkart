@@ -918,7 +918,6 @@ MonoBehaviour:
   btnSignIn: {fileID: 2067151930}
   btnRequestServerSideAccess: {fileID: 0}
   btnAchievement: {fileID: 1581614163}
-  debugScreen: {fileID: 0}
   textPlayerId: {fileID: 754980166}
   textAuthCode: {fileID: 631030075}
   textAccessToken: {fileID: 580375970}
@@ -2748,7 +2747,7 @@ MonoBehaviour:
   PgsAccessToken: 
   PgsRefreshToken: 
   serverUrl: https://trivialkart-auth-server-181838787985.us-central1.run.app
-  webClientId: 1044312393953-eq0gni71js6od3c4cqjjc2i167men5qq.apps.googleusercontent.com
+  webClientId: 386447610292-t5tcudpgkndilv2fu2ss8b0h6rup2gfs.apps.googleusercontent.com
 --- !u!1 &993528136
 GameObject:
   m_ObjectHideFlags: 0
@@ -5293,7 +5292,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 536bd3ec754c9401b81dd5c1b8d8a850, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PGSGameStatsManager
-  distanceTraveled: 0
   TMP_DistanceTraveled: {fileID: 1435003512}
 --- !u!1 &1939415802
 GameObject:

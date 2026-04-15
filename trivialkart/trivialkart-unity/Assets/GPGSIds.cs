@@ -24,9 +24,10 @@
 
 public static class GPGSIds
 {
-        public const string achievement_tk_achievement_truck = "CgkI4ZH6rrIeEAIQBA"; // <GPGSID>
-        public const string leaderboard_tk_leaderboard_distance = "CgkI4ZH6rrIeEAIQBg"; // <GPGSID>
-        public const string achievement_tk_achievement_drive = "CgkI4ZH6rrIeEAIQAw"; // <GPGSID>
+        public const string achievement_tk_achievement_rand = "CgkItKPK0J8LEAIQAw"; // <GPGSID>
+        public const string achievement_tk_achievement_truck = "CgkItKPK0J8LEAIQAg"; // <GPGSID>
+        public const string leaderboard_tk_leaderboard_distance = "CgkItKPK0J8LEAIQBA"; // <GPGSID>
+        public const string achievement_tk_achievement_drive = "CgkItKPK0J8LEAIQAQ"; // <GPGSID>
 
 }
 

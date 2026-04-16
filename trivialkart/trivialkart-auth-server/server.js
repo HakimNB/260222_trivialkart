@@ -310,12 +310,20 @@ app.post('/post_count', verifyToken, async (req, res) => {
 // exchanges it for tokens, verifies the token, and links the account
 // ---
 app.post('/exchange_authcode_for_tokens', async (req, res) => {
-    const { authCode } = req.body;
+    const { authCode, clientId, clientSecret } = req.body;
     if (!authCode) {
         return res.status(400).json({ error: "authCode is required" });
     }
     try {
-        const { tokens } = await client.getToken(authCode);
+        // const { tokens } = await client.getToken(authCode);
+        console.log(`exchange_authcode_for_tokens authCode: ${authCode}`);
+        console.log(`exchange_authcode_for_tokens clientId: ${clientId}`);
+        console.log(`exchange_authcode_for_tokens clientSecret: ${clientSecret}`);
+        var oauthClient = client;
+        if (clientId && clientSecret) {
+            oauthClient = new OAuth2Client(clientId, clientSecret);
+        }
+        const { tokens } = await oauthClient.getToken(authCode);
         console.log(`exchange_authcode_for_tokens tokens: ${JSON.stringify(tokens)}`); // tokens: {"access_token":"","scope":"https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/games_lite","token_type":"Bearer","expiry_date":1773902295498}
         const idToken = tokens.id_token;
         const accessToken = tokens.access_token;

@@ -41,6 +41,7 @@ public class AuthManager : MonoBehaviour
 
     public string serverUrl;
     public string webClientId;
+    public string webClientSecret = "TODO-CLIENT-SECRET"
 
     // --- ENDPOINTS ---
     private string exchange_authcode_and_link;
@@ -54,6 +55,8 @@ public class AuthManager : MonoBehaviour
     private class GoogleAuthRequest
     {
         public string authCode;
+        public string clientId;
+        public string clientSecret;
     }
 
     [System.Serializable]
@@ -140,7 +143,11 @@ public class AuthManager : MonoBehaviour
     private IEnumerator PGS_ExchangeAuthcodeForTokens(string serverAuthCode, Action<string> onSuccess, Action<string> onFailure)
     {
         Debug.Log("AuthManager.PGS_ExchangeAuthcodeForTokens serverAuthCode:" + serverAuthCode);
-        GoogleAuthRequest requestData = new GoogleAuthRequest { authCode = serverAuthCode };
+        GoogleAuthRequest requestData = new GoogleAuthRequest { 
+            authCode = serverAuthCode,
+            clientId = webClientId,
+            clientSecret = webClientSecret
+        };
         byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
 
         UnityWebRequest request = new UnityWebRequest(exchange_authcode_for_tokens, "POST");

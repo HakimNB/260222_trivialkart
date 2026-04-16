@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 router.post('/send_single_event', async (req, res) => {
-    const { distance, playerId } = req.body;
+    const { distance, playerId, packageId } = req.body;
 
     if (!playerId) {
         return res.status(400).json({ error: "playerId is required" });
@@ -31,7 +31,7 @@ router.post('/send_single_event', async (req, res) => {
             },
             body: JSON.stringify({
                 "playerId": String(playerId),
-                "packageName": "com.WickedCube.TrivialKart",
+                "packageName": packageId,
                 "requestTime": {
                     "seconds": currentSeconds,
                     "nanos": currentNanos

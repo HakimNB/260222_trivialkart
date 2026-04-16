@@ -16,6 +16,7 @@ public class PGSGameStatsManager : MonoBehaviour
     
     [System.Serializable]
     private class DistanceTravelledRequest { 
+        public string packageId;
         public string playerId;
         public float distance; 
     }
@@ -74,10 +75,11 @@ public class PGSGameStatsManager : MonoBehaviour
 
     private IEnumerator SendSingleEventLog(float distanceTraveled)
     {
-        Debug.Log("PGSGameStatsManager.SendSingleEventLog");
+        Debug.Log("PGSGameStatsManager.SendSingleEventLog packageId: " + Application.identifier);
         string playerId = PlayGamesPlatform.Instance.GetUserId();
         Debug.Log("PGSGameStatsManager.SendSingleEventLog.Player ID: " + playerId);
-        DistanceTravelledRequest requestData = new DistanceTravelledRequest { 
+        DistanceTravelledRequest requestData = new DistanceTravelledRequest {
+            packageId = Application.identifier, 
             playerId = playerId,
             distance = distanceTraveled 
         };

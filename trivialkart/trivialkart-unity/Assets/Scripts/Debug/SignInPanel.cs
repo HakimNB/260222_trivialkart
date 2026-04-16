@@ -89,6 +89,13 @@ public class SignInPanel : MonoBehaviour
         PGSGameStatsManager.GetInstance().GSAPI_ServerSingleEvent(distance);
     }
 
+    public void BtnClick_ServerMultiple() {
+        float distance = PlayerDataManager.GetInstance().Distance;
+        float runTimeEvent = PlayerDataManager.GetInstance().Fuel;
+        Debug.Log("SignInPanel.BtnClick_ServerMultiple: " + distance + " " + runTimeEvent);
+        PGSGameStatsManager.GetInstance().GSAPI_ServerMultiEvent(distance, runTimeEvent);
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

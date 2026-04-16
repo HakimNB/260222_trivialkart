@@ -41,7 +41,7 @@ public class AuthManager : MonoBehaviour
 
     public string serverUrl;
     public string webClientId;
-    public string webClientSecret = "TODO-CLIENT-SECRET"
+    public string webClientSecret;
 
     // --- ENDPOINTS ---
     private string exchange_authcode_and_link;
@@ -146,7 +146,7 @@ public class AuthManager : MonoBehaviour
         GoogleAuthRequest requestData = new GoogleAuthRequest { 
             authCode = serverAuthCode,
             clientId = webClientId,
-            clientSecret = webClientSecret
+            clientSecret = "TODO-CLIENT-SECRET"
         };
         byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
 

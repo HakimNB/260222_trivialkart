@@ -18,7 +18,8 @@ public class PGSGameStatsManager : MonoBehaviour
     private class DistanceTravelledRequest { 
         public string packageId;
         public string playerId;
-        public float distance; 
+        public float scoreEvent; 
+        public float runTimeEvent;
     }
     
     public TMPro.TextMeshProUGUI TMP_DistanceTraveled;
@@ -41,10 +42,11 @@ public class PGSGameStatsManager : MonoBehaviour
         //     .AddProperty("Dist", GameDataController.GetGameData().distanceTraveled)
         //     .Build();
         // PlayGamesPlatform.Instance.RecordEvent(playerGameEvent);
-        PlayerGameEvent playerGameEvent = new PlayerGameEvent.Builder("event_Single")
-            .AddProperty("Dist", distanceTraveled)
+        Debug.Log("Recording single event...");
+        PlayerGameEvent singleEvent = new PlayerGameEvent.Builder("event_single")
+            .AddProperty("score_event", distanceTraveled)
             .Build();
-        PlayGamesPlatform.Instance.RecordEvent(playerGameEvent);
+        PlayGamesPlatform.Instance.RecordEvent(singleEvent);
         PlayGamesPlatform.Instance.RequestEventsUpload();
         // ++ KIM 260316 ORIGINAL
     }
@@ -53,24 +55,27 @@ public class PGSGameStatsManager : MonoBehaviour
     {
         Debug.Log("PGSGameStatsManager.MultiEventLog");
         Debug.Log("Recording multiple events...");
-        List<PlayerGameEvent> events = new List<PlayerGameEvent>
+        List<PlayerGameEvent> multipleEvents = new List<PlayerGameEvent>
         {
-            new PlayerGameEvent.Builder("event_multiple_1")
-                .AddProperty("Dist", distanceTravelled)
+            new PlayerGameEvent.Builder("event_multiple_01")
+                .AddProperty("score_event", distanceTravelled)
                 .Build(),
-            new PlayerGameEvent.Builder("event_multiple_2")
-                .AddProperty("Coins", coinsOwned)
-                .Build(),
-            new PlayerGameEvent.Builder("event_multiple_3")
-            .AddProperty("SedanUnlocked", sedanUnlocked)
-            .Build()
+            new PlayerGameEvent.Builder("event_multiple_02")
+                .AddProperty("run_time_event", coinsOwned)
+                .Build()
         };
-        PlayGamesPlatform.Instance.RecordEvents(events);
+        PlayGamesPlatform.Instance.RecordEvents(multipleEvents);
+        PlayGamesPlatform.Instance.RequestEventsUpload();
     }
 
     public void GSAPI_ServerSingleEvent(float distanceTraveled) {
         Debug.Log("PGSGameStatsManager.GSAPI_ServerSingleEvent");
         StartCoroutine(SendSingleEventLog(distanceTraveled));
+    }
+
+    public void GSAPI_ServerMultiEvent(float distanceTraveled, float runTimeEvent) {
+        Debug.Log("PGSGameStatsManager.GSAPI_ServerMultiEvent");
+        StartCoroutine(SendMultipleEventLog(distanceTraveled, runTimeEvent));
     }
 
     private IEnumerator SendSingleEventLog(float distanceTraveled)
@@ -81,7 +86,7 @@ public class PGSGameStatsManager : MonoBehaviour
         DistanceTravelledRequest requestData = new DistanceTravelledRequest {
             packageId = Application.identifier, 
             playerId = playerId,
-            distance = distanceTraveled 
+            scoreEvent = distanceTraveled
         };
         byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
         UnityWebRequest request = new UnityWebRequest(AuthManager.GetInstance().serverUrl + "/send_single_event", "POST");
@@ -99,6 +104,36 @@ public class PGSGameStatsManager : MonoBehaviour
         else
         {
             Debug.Log("PGSGameStatsManager.SendSingleEventLog failed. Error: " + request.error);
+        }   
+    }
+
+    private IEnumerator SendMultipleEventLog(float scoreEvent, float runTimeEvent)
+    {
+        Debug.Log("PGSGameStatsManager.SendSingleEventLog packageId: " + Application.identifier);
+        string playerId = PlayGamesPlatform.Instance.GetUserId();
+        Debug.Log("PGSGameStatsManager.SendSingleEventLog.Player ID: " + playerId);
+        DistanceTravelledRequest requestData = new DistanceTravelledRequest {
+            packageId = Application.identifier, 
+            playerId = playerId,
+            scoreEvent = scoreEvent,
+            runTimeEvent = runTimeEvent
+        };
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(JsonUtility.ToJson(requestData));
+        UnityWebRequest request = new UnityWebRequest(AuthManager.GetInstance().serverUrl + "/send_multiple_event", "POST");
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer " + AuthManager.GetInstance().PgsAccessToken);
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("PGSGameStatsManager.SendMultipleEventLog success: " + request.downloadHandler.text);
+        }
+        else
+        {
+            Debug.Log("PGSGameStatsManager.SendMultipleEventLog failed. Error: " + request.error);
         }   
     }
 }

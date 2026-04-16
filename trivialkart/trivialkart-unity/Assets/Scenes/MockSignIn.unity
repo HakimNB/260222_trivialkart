@@ -1566,7 +1566,7 @@ MonoBehaviour:
   PgsAccessToken: 
   PgsRefreshToken: 
   serverUrl: https://trivialkart-auth-server-181838787985.us-central1.run.app
-  webClientId: 386447610292-t5tcudpgkndilv2fu2ss8b0h6rup2gfs.apps.googleusercontent.com
+  webClientId: 386447610292-mcdt4eleb7enp5fnuua6te56e9se7fqh.apps.googleusercontent.com
 --- !u!1 &1162833870
 GameObject:
   m_ObjectHideFlags: 0

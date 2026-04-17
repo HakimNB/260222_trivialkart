@@ -109,9 +109,9 @@ public class PGSGameStatsManager : MonoBehaviour
 
     private IEnumerator SendMultipleEventLog(float scoreEvent, float runTimeEvent)
     {
-        Debug.Log("PGSGameStatsManager.SendSingleEventLog packageId: " + Application.identifier);
+        Debug.Log("PGSGameStatsManager.SendMultipleEventLog packageId: " + Application.identifier);
         string playerId = PlayGamesPlatform.Instance.GetUserId();
-        Debug.Log("PGSGameStatsManager.SendSingleEventLog.Player ID: " + playerId);
+        Debug.Log("PGSGameStatsManager.SendMultipleEventLog.Player ID: " + playerId);
         DistanceTravelledRequest requestData = new DistanceTravelledRequest {
             packageId = Application.identifier, 
             playerId = playerId,

@@ -117,13 +117,12 @@ router.post('/send_multiple_event', async (req, res) => {
                     {
                         "eventId": "0213c1c9-e1a1-42e3-94a4-b81ba5e94ba5", // Needs to match your achievement/event ID in GCP console
                         "eventName": "event_multiple_01",
-                        "eventProperties": [{
-                            "key": "event_multiple_01",
-                            "value": {
+                        "eventProperties": {
+                            "scoreEvent": {
                                 // Google values are strictly typed as strings; use intValue, floatValue, or longValue according to your Console definition
                                 "intValue": String(Math.round(scoreEvent || 0))
                             }
-                        }],
+                        },
                         "eventTime": {
                             "seconds": currentSeconds,
                             "nanos": currentNanos
@@ -133,8 +132,7 @@ router.post('/send_multiple_event', async (req, res) => {
                         "eventId": "0213c1c9-e1a1-42e3-94a4-b81ba5e94ba6", // Needs to match your achievement/event ID in GCP console
                         "eventName": "event_multiple_02",
                         "eventProperties": {
-                            "key": "event_multiple_02",
-                            "value": {
+                            "runTimeEvent": {
                                 // Google values are strictly typed as strings; use intValue, floatValue, or longValue according to your Console definition
                                 "intValue": String(Math.round(runTimeEvent || 0))
                             }
@@ -159,7 +157,7 @@ router.post('/send_multiple_event', async (req, res) => {
         responseData = await response.text(); // Fallback if API returns a non-JSON error
     }
 
-    console.log(`[EventsRouter] /send_single_event -> Status: ${response.status} | Text: ${response.statusText}`);
+    console.log(`[EventsRouter] /send_multiple_event -> Status: ${response.status} | Text: ${response.statusText}`);
 
     return res.status(response.status).json({
         message: "Multiple event forwarded successfully",

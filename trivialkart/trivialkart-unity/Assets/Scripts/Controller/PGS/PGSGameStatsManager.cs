@@ -31,6 +31,26 @@ public class PGSGameStatsManager : MonoBehaviour
         }
         _instance = this;
     }
+
+    public void BtnClick_ClientSingleEvent(){
+        Debug.Log("BtnClick_ClientSingleEvent");
+        GSAPI_ClientSingleEvent(100.0f);
+    }
+
+    public void BtnClick_ClientMultipleEvent(){
+        Debug.Log("BtnClick_ClientMultipleEvent");
+        GSAPI_ClientMultiEvent(100.0f, 200, false);
+    }
+
+    public void BtnClick_ServerSingleEvent(){
+        Debug.Log("BtnClick_ServerSingleEvent");
+        GSAPI_ServerSingleEvent(100.0f);
+    }
+
+    public void BtnClick_ServerMultipleEvent(){
+        Debug.Log("BtnClick_ServerMultipleEvent");
+        GSAPI_ServerMultiEvent(100.0f, 200.0f);
+    }
     
     public void GSAPI_ClientSingleEvent(float distanceTraveled)
     {

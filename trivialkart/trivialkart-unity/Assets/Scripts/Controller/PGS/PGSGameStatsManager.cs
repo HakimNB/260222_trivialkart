@@ -32,6 +32,15 @@ public class PGSGameStatsManager : MonoBehaviour
         _instance = this;
     }
 
+    public void BtnClick_SignIn() {
+        Debug.Log("BtnClick_SignIn");
+        AuthManager.GetInstance().PGS_SignIn((string playerId) => {
+            Debug.Log("PGS Sign In Success: " + playerId);
+        }, (string error) => {
+            Debug.Log("PGS Sign In Failed: " + error);
+        });
+    }
+
     public void BtnClick_ClientSingleEvent(){
         Debug.Log("BtnClick_ClientSingleEvent");
         GSAPI_ClientSingleEvent(100.0f);

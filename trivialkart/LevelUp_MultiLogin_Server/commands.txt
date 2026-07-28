@@ -1,0 +1,224 @@
+# ReadMe
+Commands to deploy trivialkart-auth-server to Google Cloud
+Follow step-by-step guidance starting from the new account: gsapi.cloud.console@gmail.com
+
+ipconfig getifaddr en0
+
+{"playerId":"a_29470715826741684"}
+
+https://games.googleapis.com/games/v1/players/{playerId}/gameStats:batchRecordEvents
+
+curl -X POST "https://games.googleapis.com/games/v1/players/me/gameStats:batchRecordEvents" \
+  -H "Authorization: Bearer [OAUTH_TOKEN]" \
+  -H "Content-Type: application/json" \
+  -d '{
+            "playerId": playerId,
+            "packageName": "com.WickedCube.TrivialKart",
+            "requestTime": {
+                "seconds": 1773994812,
+                "nanos": 140000000
+            },
+            "events": [
+                {
+                    "eventId": "0213c1c9-e1a1-42e3-94a4-b81ba5e94ba5",
+                    "eventName": "eName",
+                    "eventProperties": {
+                        "distance": {
+                            "intValue": "13"
+                        }
+                    },
+                    "eventTime": {
+                        "seconds": 1773994812,
+                        "nanos": 140000000
+                    }
+                }
+            ]
+        }'
+
+curl -X POST "https://games.googleapis.com/games/v1/players/me/gameStats:batchRecordEvents" \
+  -H "Authorization: Bearer [OAUTH_TOKEN]" \
+  -H "Content-Type: application/json" \
+  -d '{
+            "playerId": "a_29470715826741684",
+            "packageName": "com.WickedCube.TrivialKart",
+            "requestTime": {
+                "seconds": 1773994812,
+                "nanos": 140000000
+            },
+            "events": [
+                {
+                    "eventId": "0213c1c9-e1a1-42e3-94a4-b81ba5e94ba5",
+                    "eventName": "eName",
+                    "eventProperties": {
+                        "distance": {
+                            "intValue": "13"
+                        }
+                    },
+                    "eventTime": {
+                        "seconds": 1773994812,
+                        "nanos": 140000000
+                    }
+                }
+            ]
+        }'
+
+
+curl -X POST https://ais-dev-kfwk6pw6cgk6kxdms7rvza-4973050421.asia-east1.run.app/api/verify_and_link_google \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idToken": "YOUR_REAL_GOOGLE_ID_TOKEN",
+    "playerID": "123456789"
+  }'
+
+  curl -X POST "https://ais-dev-kfwk6pw6cgk6kxdms7rvza-4973050421.asia-east1.run.app/api/exchange_authcode_for_tokens" \
+  -H "Authorization: Bearer [OAUTH_TOKEN]" \
+  -H "Content-Type: application/json" \
+  -d '{
+            "playerId": "a_29470715826741684",
+            "packageName": "com.WickedCube.TrivialKart",
+            "requestTime": {
+                "seconds": 1773994812,
+                "nanos": 140000000
+            },
+            "events": [
+                {
+                    "eventId": "0213c1c9-e1a1-42e3-94a4-b81ba5e94ba5",
+                    "eventName": "eName",
+                    "eventProperties": {
+                        "distance": {
+                            "intValue": "13"
+                        }
+                    },
+                    "eventTime": {
+                        "seconds": 1773994812,
+                        "nanos": 140000000
+                    }
+                }
+            ]
+        }'
+
+
+curl -X POST https://trivialkart-auth-server-676559854542.us-central1.run.app/send_single_event \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer [YOUR_GOOGLE_ACCESS_TOKEN]" \
+  -d '{
+    "distance": 15.5,
+    "playerId": "G:1234567890abcdef"
+  }'
+
+curl -X POST https://trivialkart-auth-server-676559854542.us-central1.run.app/send_single_event \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer Bearer [OAUTH_TOKEN]" \
+  -d '{
+    "distance": 15.5,
+    "playerId": "G:1234567890abcdef"
+  }'
+
+gcloud beta run services logs tail trivialkart-auth-server --region=us-central1 --project=project-7981f7d0-9884-4e1e-a13
+
+
+gsapi.cloud.console@gmail.com
+
+gcloud auth login
+
+gcloud config set project project-257ff62a-786a-4eec-aec
+
+gcloud config set run/region us-central1
+
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com
+
+gcloud run deploy trivialkart-auth-server --source . --allow-unauthenticated
+
+1. Grant Storage Access (Fixes the current 403 error)
+gcloud projects add-iam-policy-binding project-257ff62a-786a-4eec-aec \
+  --member="serviceAccount:181838787985-compute@developer.gserviceaccount.com" \
+  --role="roles/storage.objectViewer"
+
+2. Grant Artifact Registry Access (Fixes the next upload error)
+gcloud projects add-iam-policy-binding project-257ff62a-786a-4eec-aec \
+  --member="serviceAccount:181838787985-compute@developer.gserviceaccount.com" \
+  --role="roles/artifactregistry.writer"
+
+3. Grant Logging Access (So you can see build logs)
+gcloud projects add-iam-policy-binding project-257ff62a-786a-4eec-aec \
+  --member="serviceAccount:181838787985-compute@developer.gserviceaccount.com" \
+  --role="roles/logging.logWriter"
+
+gcloud run deploy trivialkart-auth-server --source . --allow-unauthenticated
+
+gcloud builds log 62c61089-dab2-4e94-898f-cf569fa4fd4e --region=us-central1
+
+Service [trivialkart-auth-server] revision [trivialkart-auth-server-00001-jqf] has been deployed and is serving 100 percent of traffic.
+Service URL: https://trivialkart-auth-server-181838787985.us-central1.run.app
+
+curl -X POST https://trivialkart-auth-server-181838787985.us-central1.run.app/send_single_event \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer [OAUTH_TOKEN]" \
+  -d '{
+    "distance": 15.5,
+    "playerId": "G:1234567890abcdef"
+  }'
+
+
+Grant Secret Manager Access:
+gcloud projects add-iam-policy-binding project-257ff62a-786a-4eec-aec \n  --member="serviceAccount:181838787985-compute@developer.gserviceaccount.com" \n  --role="roles/secretmanager.secretAccessor"
+
+Tail LOG:
+gcloud beta run services logs tail trivialkart-auth-server --region=us-central1 --project=project-257ff62a-786a-4eec-aec
+
+GET ENV VAR:
+gcloud run services describe trivialkart-auth-server \
+  --region us-central1 \
+  --project project-257ff62a-786a-4eec-aec \
+  --format="yaml(spec.template.spec.containers[0].env)"
+
+SET ENV VAR
+386447610292-t5tcudpgkndilv2fu2ss8b0h6rup2gfs.apps.googleusercontent.com
+
+=========================================================================================================
+com.WickedCube.TrivialKart
+gcloud run deploy trivialkart-auth-server \
+  --source . \
+  --allow-unauthenticated \
+  --update-env-vars WEB_CLIENT_ID="1044312393953-eq0gni71js6od3c4cqjjc2i167men5qq.apps.googleusercontent.com" \
+  --region us-central1 \
+  --project project-257ff62a-786a-4eec-aec
+
+com.WickedCube.TrivialKart
+gcloud run deploy trivialkart-auth-server \
+  --source . \
+  --allow-unauthenticated \
+  --update-env-vars WEB_CLIENT_SECRET="[SECRET]" \
+  --region us-central1 \
+  --project project-257ff62a-786a-4eec-aec
+=========================================================================================================
+
+com.gamesamples.trivialkartunity - android client
+gcloud run deploy trivialkart-auth-server \
+  --source . \
+  --allow-unauthenticated \
+  --update-env-vars WEB_CLIENT_ID="386447610292-t5tcudpgkndilv2fu2ss8b0h6rup2gfs.apps.googleusercontent.com" \
+  --region us-central1 \
+  --project project-257ff62a-786a-4eec-aec
+
+=========================================================================================================
+com.gamesamples.trivialkartunity - Trivialkart Unity GSAPI Server
+gcloud run deploy trivialkart-auth-server \
+  --source . \
+  --allow-unauthenticated \
+  --update-env-vars WEB_CLIENT_ID="386447610292-mcdt4eleb7enp5fnuua6te56e9se7fqh.apps.googleusercontent.com" \
+  --region us-central1 \
+  --project project-257ff62a-786a-4eec-aec
+
+com.gamesamples.trivialkartunity - Trivialkart Unity GSAPI Server
+gcloud run deploy trivialkart-auth-server \
+  --source . \
+  --allow-unauthenticated \
+  --update-env-vars WEB_CLIENT_SECRET="[SECRET]" \
+  --region us-central1 \
+  --project project-257ff62a-786a-4eec-aec
+  =========================================================================================================
+
+com.gamesamples.trivialkartunity - web application in linked GCP account (Trivialkart Unity GSAPI Server)
+WEB_CLIENT_ID: 386447610292-mcdt4eleb7enp5fnuua6te56e9se7fqh.apps.googleusercontent.com
+WEB_CLIENT_SECRET: [SECRET]

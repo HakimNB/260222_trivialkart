@@ -222,3 +222,77 @@ gcloud run deploy trivialkart-auth-server \
 com.gamesamples.trivialkartunity - web application in linked GCP account (Trivialkart Unity GSAPI Server)
 WEB_CLIENT_ID: 386447610292-mcdt4eleb7enp5fnuua6te56e9se7fqh.apps.googleusercontent.com
 WEB_CLIENT_SECRET: [SECRET]
+
+Starting MCP Server:
+/Users/hakimh/.local/bin/uvx --offline --from "mcpforunityserver==10.1.0" mcp-for-unity --transport http --http-url http://127.0.0.1:8080 --project-scoped-tools
+
+curl -X POST https://trivialkart-auth-server-nksyybo3qa-uc.a.run.app/exchange_authcode_for_tokens \
+  -H "Content-Type: application/json" \
+  -d '{
+    "authCode": "[AUTHCODE]"
+  }'
+
+curl -X POST "https://games.googleapis.com/games/v1/players/a_7708386267650155294/gameStats:batchRecordEvents" \
+  -H "Authorization: Bearer [TOKEN]" \
+  -H "Content-Type: application/json" \
+  -d '{
+            "playerId": "a_29470715826741684",
+            "packageName": "com.WickedCube.TrivialKart",
+            "requestTime": "2026-07-29T04:12:17Z",
+            "events": [
+                {
+                    "eventId": "0213c1c9-e1a1-42e3-94a4-b81ba5e94ba5",
+                    "eventName": "driveCompleted",
+                    "eventProperties": {
+                        "distance": {
+                            "intValue": 13
+                        }
+                    },
+                    "eventTime": "2026-07-29T04:12:17Z"
+                }
+            ]
+        }'
+
+Response:
+{
+  "error": {
+    "code": 403,
+    "message": "No valid Android OAuth client for the provided package name.",
+    "errors": [
+      {
+        "message": "No valid Android OAuth client for the provided package name.",
+        "domain": "global",
+        "reason": "forbidden",
+        "debugInfo": "detail: \"[ORIGINAL ERROR] generic::permission_denied: com.google.apps.framework.request.ForbiddenException: No valid Android OAuth client for the provided package name. [google.rpc.error_details_ext] { message: \\\"No valid Android OAuth client for the provided package name.\\\" }\"\n"
+      }
+    ],
+    "status": "PERMISSION_DENIED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.DebugInfo",
+        "detail": "[ORIGINAL ERROR] generic::permission_denied: com.google.apps.framework.request.ForbiddenException: No valid Android OAuth client for the provided package name. [google.rpc.error_details_ext] { message: \"No valid Android OAuth client for the provided package name.\" }"
+      }
+    ]
+  }
+}
+
+curl -X POST "https://games.googleapis.com/games/v1/players/a_29470715826741684/gameStats:batchRecordEvents" \
+  -H "Authorization: Bearer [TOKEN]" \
+  -H "Content-Type: application/json" \
+  -d '{
+            "playerId": "a_29470715826741684",
+            "packageName": "com.WickedCube.TrivialKart",
+            "requestTime": "2026-07-30T02:47:47Z",
+            "events": [
+                {
+                    "eventId": "0213c1c9-e1a1-42e3-94a4-b81ba5e94ba5",
+                    "eventName": "driveCompleted",
+                    "eventProperties": {
+                        "distance": {
+                            "intValue": 13
+                        }
+                    },
+                    "eventTime": "2026-07-29T04:12:17Z"
+                }
+            ]
+        }'

@@ -13,7 +13,7 @@ const FB_APP_SECRET = process.env.FB_APP_SECRET;
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 if (!WEB_CLIENT_ID || !WEB_CLIENT_SECRET || !FB_APP_ID || !FB_APP_SECRET || !JWT_SECRET) {
     console.error("FATAL ERROR: Google or Facebook .env or JWT_SECRET variables are not set.");
